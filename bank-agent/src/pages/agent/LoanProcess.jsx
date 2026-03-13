@@ -58,69 +58,84 @@ const LoanProcess = () => {
 
 
   const handleSave = async (section, updatedData) => {
-  await fetch(`http://localhost:5000/api/loans/${loanId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      section,
-      data: updatedData,
-    }),
-  });
-
-  await fetchLoan();
-  alert("Saved successfully");
-};
-
-const handleModify = async () => {
   try {
-    await fetch(
-      `http://localhost:5000/api/loans/${loanId}/modify`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const res = await fetch(`http://localhost:5000/api/loans/${loanId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        section,
+        data: updatedData,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message || `Failed to update ${section}`);
+    }
 
     await fetchLoan();
-    alert("Application reopened for editing");
-
+    alert(result.message || "Saved successfully");
   } catch (error) {
     console.error(error);
+    alert(error.message || "Something went wrong");
   }
 };
+
 const handleReject = async () => {
   const reason = prompt("Enter rejection reason:");
-
   if (!reason) return;
 
   try {
-    const res = await fetch(
-      `http://localhost:5000/api/loans/${loanId}/reject`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ remarks: reason }),
-      }
-    );
+    const res = await fetch(`http://localhost:5000/api/loans/${loanId}/reject`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ remarks: reason }),
+    });
+
+    const data = await res.json();
 
     if (!res.ok) {
-      throw new Error("Failed to reject");
+      throw new Error(data.message || "Failed to reject");
     }
 
     await fetchLoan();
     alert("Loan rejected successfully");
-
   } catch (error) {
     console.error(error);
-    alert("Something went wrong");
+    alert(error.message || "Something went wrong");
+  }
+};
+
+const handleSubmitApplication = async () => {
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/loans/${loanId}/submit`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to submit application");
+    }
+
+    await fetchLoan();
+    alert("Application submitted successfully");
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "Something went wrong");
   }
 };
 
@@ -134,7 +149,7 @@ if (!loan) {
 }
 
 // ⬇️ Only now use loan
-const isEditable = loan.status === "draft";
+const isEditable = ["draft", "pending"].includes(loan.status);
 
   return (
     
@@ -142,22 +157,21 @@ const isEditable = loan.status === "draft";
       <h1 className="text-3xl font-semibold mb-8">
         Loan ID: {loanId}
       </h1>
-      <span className={`px-3 py-1 rounded-full text-sm ${
-  loan.status === "approved"
-    ? "bg-green-100 text-green-700"
-    : "bg-gray-100 text-gray-700"
-}`}>
-  {loan.status?.toUpperCase()}
-</span>
-{loan.status === "approved" && (
-  <button
-    onClick={handleModify}
-    className="ml-4 px-4 py-1 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-  >
-    Modify Application
-  </button>
-)}
-
+      <span
+      className={`rounded-full px-3 py-1 text-sm ${
+        loan.status === "approved"
+          ? "bg-green-100 text-green-700"
+          : loan.status === "pending"
+          ? "bg-blue-100 text-blue-700"
+          : loan.status === "draft"
+          ? "bg-yellow-100 text-yellow-700"
+          : loan.status === "rejected"
+          ? "bg-red-100 text-red-700"
+          : "bg-gray-100 text-gray-700"
+        }`}
+      >
+        {loan.status?.toUpperCase()}
+      </span>
 
       {/* Step Indicator */}
       <div className="flex mb-10">
@@ -203,8 +217,28 @@ const isEditable = loan.status === "draft";
         )}
 
         {currentStep === 3 && (
-          <ReviewSubmit loanData={loan} isEditable={isEditable} />
-        )}
+  <div className="space-y-6">
+    <ReviewSubmit loanData={loan} isEditable={isEditable} />
+
+    {["draft", "pending"].includes(loan.status) && (
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handleSubmitApplication}
+          className="rounded-lg bg-green-600 px-5 py-2 text-white hover:bg-green-700"
+        >
+          Approve Loan
+        </button>
+
+        <button
+          onClick={handleReject}
+          className="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700"
+        >
+          Reject Loan
+        </button>
+      </div>
+    )}
+  </div>
+)}
 
         {/* Navigation */}
         <div className="flex justify-between mt-8">

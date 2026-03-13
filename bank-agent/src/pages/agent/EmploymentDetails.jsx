@@ -2,56 +2,34 @@ import React from "react";
 import { useState, useEffect } from "react";
 
 const EmploymentDetails = ({ data, isEditable, onSave }) => {
-  const [companyId, setCompanyId] = useState("");
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [location, setLocation] = useState("");
   const [salary, setSalary] = useState("");
-  const [netsalary, setNetSalary] = useState("");
+  const [netHandSalary, setNetHandSalary] = useState("");
 
   useEffect(() => {
     if (data) {
-      setCompanyId(data.companyId || "");
       setCompany(data.companyName || "");
       setJobTitle(data.jobTitle || "");
       setLocation(data.location || "");
       setSalary(data.salary || "");
+      setNetHandSalary(data.netHandSalary || "");
     }
   }, [data]);
 
   const handleSaveClick = () => {
     onSave("employmentDetails", {
-      companyId,
       companyName: company,
       jobTitle,
       salary,
       location,
-      netsalary,
+      netHandSalary,
     });
   };
 
   return (
   <div className="space-y-6">
-
-
-    <div>
-      <label className="block text-sm text-gray-500 mb-1">
-        Company ID
-      </label>
-
-      {isEditable ? (
-        <input
-          type="text"
-          value={companyId}
-          onChange={(e) => setCompanyId(e.target.value)}
-          className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-        />
-      ) : (
-        <p className="text-lg font-medium text-gray-800">
-          {companyId || "-"}
-        </p>
-      )}
-    </div>
 
     {/* Company */}
     <div>
@@ -134,19 +112,19 @@ const EmploymentDetails = ({ data, isEditable, onSave }) => {
 
     <div>
       <label className="block text-sm text-gray-500 mb-1">
-        Net Salary
+        Net Hand Salary
       </label>
 
       {isEditable ? (
         <input
           type="number"
-          value={netsalary}
-          onChange={(e) => setNetSalary(e.target.value)}
+          value={netHandSalary}
+          onChange={(e) => setNetHandSalary(e.target.value)}
           className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
       ) : (
         <p className="text-lg font-medium text-gray-800">
-          ₹ {netsalary || 0}
+          ₹ {netHandSalary || 0}
         </p>
       )}
     </div>

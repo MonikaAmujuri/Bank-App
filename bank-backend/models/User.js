@@ -48,11 +48,13 @@ const userSchema = new mongoose.Schema(
     documents: {
   panCard: {
     url: { type: String, default: "" },
+    public_id: { type: String, default: "" },
     filename: { type: String, default: "" },
     uploadedAt: { type: Date, default: null },
   },
   aadharCard: {
     url: { type: String, default: "" },
+    public_id: { type: String, default: "" },
     filename: { type: String, default: "" },
     uploadedAt: { type: Date, default: null },
   },

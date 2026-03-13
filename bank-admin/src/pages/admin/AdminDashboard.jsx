@@ -80,7 +80,7 @@ localStorage.setItem("adminDashboardStats", JSON.stringify(data));
           </h2>
         </div>
         <div
-          onClick={() => navigate("/admin/loans?loanType=home")}
+          onClick={() => navigate("/admin/loans?loanType=Home Loan")}
           className="bg-white p-6 rounded-xl shadow cursor-pointer hover:shadow-lg transition"
         >
           <p className="text-gray-500 text-sm font-medium">Home Loans</p>
@@ -89,7 +89,7 @@ localStorage.setItem("adminDashboardStats", JSON.stringify(data));
           </h2>
         </div>
         <div
-          onClick={() => navigate("/admin/loans?loanType=personal")}
+          onClick={() => navigate("/admin/loans?loanType=Personal Loan")}
           className="bg-white p-6 rounded-xl shadow cursor-pointer hover:shadow-lg transition"
         >
           <p className="text-gray-500 text-sm font-medium">Personal Loans</p>
@@ -98,7 +98,7 @@ localStorage.setItem("adminDashboardStats", JSON.stringify(data));
           </h2>
         </div>
         <div
-          onClick={() => navigate("/admin/loans?loanType=education")}
+          onClick={() => navigate("/admin/loans?loanType=Education Loan")}
           className="bg-white p-6 rounded-xl shadow cursor-pointer hover:shadow-lg transition"
         >
           <p className="text-gray-500 text-sm font-medium">Education Loans</p>
@@ -107,7 +107,7 @@ localStorage.setItem("adminDashboardStats", JSON.stringify(data));
           </h2>
         </div>
         <div
-          onClick={() => navigate("/admin/loans?loanType=business")}
+          onClick={() => navigate("/admin/loans?loanType=Business Loan")}
           className="bg-white p-6 rounded-xl shadow cursor-pointer hover:shadow-lg transition"
         >
           <p className="text-gray-500 text-sm font-medium">Business Loans</p>
@@ -116,7 +116,7 @@ localStorage.setItem("adminDashboardStats", JSON.stringify(data));
           </h2>
         </div>
         <div
-          onClick={() => navigate("/admin/loans?loanType=vehicle")}
+          onClick={() => navigate("/admin/loans?loanType=Vehicle Loan")}
           className="bg-white p-6 rounded-xl shadow cursor-pointer hover:shadow-lg transition"
         >
           <p className="text-gray-500 text-sm font-medium">Vehicle Loans</p>

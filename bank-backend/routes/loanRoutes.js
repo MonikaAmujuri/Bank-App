@@ -4,7 +4,7 @@ import { protect } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
 import { upload } from "../middleware/uploadMiddleware.js";
 import { updateLoan, getLoanById, archiveLoan, restoreLoan, submitLoan,
-   modifyApprovedLoan, rejectLoanByAgent, applyLoan} from "../controllers/loanController.js";
+    rejectLoanByAgent, applyLoan} from "../controllers/loanController.js";
 
 const router = express.Router();
 
@@ -45,10 +45,7 @@ router.put(
   authorizeRoles("agent"),
   submitLoan
 );
-router.put("/:loanId/modify", 
-  protect, 
-  modifyApprovedLoan
-);
+
 router.put("/:loanId/reject", 
   protect, 
   rejectLoanByAgent

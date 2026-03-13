@@ -8,6 +8,7 @@ const LoanDetails = ({ loan, data, isEditable, onSave }) => {
   const [interestRate, setInterestRate] = useState("");
   const [errors, setErrors] = useState({});
 
+
   // Load existing data when component mounts
   useEffect(() => {
     if (data) {
@@ -76,11 +77,11 @@ const LoanDetails = ({ loan, data, isEditable, onSave }) => {
           className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
         >
           <option value="">Select Loan Type</option>
-          <option value="personal">Personal Loan</option>
-          <option value="home">Home Loan</option>
-          <option value="education">Education Loan</option>
-          <option value="business">Business Loan</option>
-          <option value="vehicle">Vehicle Loan</option>
+          <option value="Personal Loan">Personal Loan</option>
+          <option value="Home Loan">Home Loan</option>
+          <option value="Education Loan">Education Loan</option>
+          <option value="Business Loan">Business Loan</option>
+          <option value="Vehicle Loan">Vehicle Loan</option>
         </select>
       ) : (
         <p className="text-lg font-medium text-gray-800 capitalize">

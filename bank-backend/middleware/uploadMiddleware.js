@@ -1,34 +1,30 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
-const uploadPath = "uploads/user-documents";
-
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
-    cb(null, uniqueName);
-  },
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => ({
+    folder: "bank-app/documents",
+    resource_type: "auto",
+    allowed_formats: ["jpg", "jpeg", "png", "pdf"],
+    public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
+  }),
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|pdf/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/pdf",
+  ];
 
-  if (extname && mimetype) {
-    return cb(null, true);
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only PDF, JPG, JPEG, PNG, and PDF files are allowed"));
   }
-
-  cb(new Error("Only PDF, JPG, JPEG, and PNG files are allowed"));
 };
 
 export const upload = multer({

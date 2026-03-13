@@ -61,9 +61,19 @@ export const updateLoan = async (req, res) => {
       return res.status(403).json({ message: "Not allowed to update this loan" });
     }
 
-    if (loan.status !== "draft" && req.user.role !== "admin") {
-      return res.status(400).json({ message: "Loan cannot be edited now" });
-    }
+    if (
+      req.user.role === "agent" &&
+      !["draft", "pending"].includes(loan.status)
+    ) {
+       return res.status(400).json({ message: "Loan cannot be edited now" });
+      }
+
+    if (
+      req.user.role === "admin" &&
+      !["draft", "pending", "approved"].includes(loan.status)
+    ) {
+        return res.status(400).json({ message: "Loan cannot be edited now" });
+      }
 
     // Allowed sections
     const allowedSections = ["loanDetails", "employmentDetails", "kycDetails"];
@@ -126,10 +136,19 @@ export const updateLoan = async (req, res) => {
       ...loan[section],
       ...normalizedData,
     };
+
+    loan.markModified(section);
+
     if (req.user.role === "admin") {
       loan.lastModifiedBy = req.user._id;
     }
+
+    console.log("Saving section:", section);
+console.log("Updated data:", loan[section]);
     await loan.save();
+
+    const updatedLoan = await Loan.findOne({ loanId });
+console.log("Saved loan details:", updatedLoan[section]);
 
     res.status(200).json({
       message: `${section} updated successfully`,
@@ -144,7 +163,9 @@ export const updateLoan = async (req, res) => {
  export const getLoanById = async (req, res) => {
   try {
     const loan = await Loan.findOne({ loanId: req.params.loanId })
-  .populate("lastModifiedBy", "name role");
+      .populate("lastModifiedBy", "name role")
+      .populate("agentId", "name agentId")
+      .populate("userObjectId", "name userId");
 
     if (!loan) {
       return res.status(404).json({ message: "Loan not found" });
@@ -207,49 +228,27 @@ export const submitLoan = async (req, res) => {
       return res.status(404).json({ message: "Loan not found" });
     }
 
-    if (loan.agentId.toString() !== req.user._id.toString()) {
+    if (!loan.agentId || loan.agentId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    if (loan.status !== "draft") {
-      return res.status(400).json({ message: "Already submitted" });
+    if (!["draft", "pending"].includes(loan.status)) {
+      return res.status(400).json({
+        message: "Only draft or pending loans can be submitted",
+      });
     }
 
     loan.status = "approved";
-    loan.approvedBy = req.user._id; // optional but professional 
+    loan.approvedBy = req.user._id;
     await loan.save();
 
     res.json({ message: "Loan submitted successfully" });
-
   } catch (error) {
-    console.error(error); // keep this for debugging
+    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };
-export const modifyApprovedLoan = async (req, res) => {
-  try {
-    const loan = await Loan.findOne({ loanId: req.params.loanId });
 
-    if (!loan) {
-      return res.status(404).json({ message: "Loan not found" });
-    }
-
-    if (loan.status !== "approved") {
-      return res.status(400).json({ message: "Only approved loans can be modified" });
-    }
-
-    loan.status = "draft";
-    loan.approvedBy = null;
-    loan.remarks = "Modified after approval";
-
-    await loan.save();
-
-    res.json({ message: "Loan reopened for modification" });
-
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
 export const rejectLoanByAgent = async (req, res) => {
   try {
     const loan = await Loan.findOne({ loanId: req.params.loanId });
@@ -258,9 +257,13 @@ export const rejectLoanByAgent = async (req, res) => {
       return res.status(404).json({ message: "Loan not found" });
     }
 
-    if (loan.status !== "pending") {
+    if (!loan.agentId || loan.agentId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not allowed" });
+    }
+
+    if (!["draft", "pending"].includes(loan.status)) {
       return res.status(400).json({
-        message: "Only pending loans can be rejected",
+        message: "Only draft or pending loans can be rejected",
       });
     }
 
@@ -270,8 +273,8 @@ export const rejectLoanByAgent = async (req, res) => {
     await loan.save();
 
     res.json({ message: "Loan rejected successfully" });
-
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 };

@@ -204,7 +204,7 @@ const Documents = () => {
 
               {documents.panCard && (
                 <a
-                  href={`http://localhost:5000/${documents.panCard.url}`}
+                  href={documents.panCard.url}
                   target="_blank"
                   rel="noreferrer"
                   className="mb-4 inline-block text-sm font-medium text-blue-700 hover:underline"
@@ -254,7 +254,7 @@ const Documents = () => {
 
               {documents.aadharCard && (
                 <a
-                  href={`http://localhost:5000/${documents.aadharCard.url}`}
+                  href={documents.aadharCard.url}
                   target="_blank"
                   rel="noreferrer"
                   className="mb-4 inline-block text-sm font-medium text-blue-700 hover:underline"

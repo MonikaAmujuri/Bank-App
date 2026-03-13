@@ -105,7 +105,7 @@ localStorage.setItem("agentDashboardStats", JSON.stringify(data));
         </div>
 
         <div
-          onClick={() => navigate("/agent/loans?type=Home")}
+          onClick={() => navigate("/agent/loans?type=Home Loan")}
           className="cursor-pointer bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition"
         >
           <p className="text-gray-500 text-sm font-medium">
@@ -117,7 +117,7 @@ localStorage.setItem("agentDashboardStats", JSON.stringify(data));
         </div>
 
         <div
-          onClick={() => navigate("/agent/loans?type=Personal")}
+          onClick={() => navigate("/agent/loans?type=Personal Loan")}
           className="cursor-pointer bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition"
         >
           <p className="text-gray-500 text-sm font-medium">
@@ -129,7 +129,7 @@ localStorage.setItem("agentDashboardStats", JSON.stringify(data));
         </div>
 
         <div
-          onClick={() => navigate("/agent/loans?type=Education")}
+          onClick={() => navigate("/agent/loans?type=Education Loan")}
           className="cursor-pointer bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition"
         >
           <p className="text-gray-500 text-sm font-medium">
@@ -141,7 +141,7 @@ localStorage.setItem("agentDashboardStats", JSON.stringify(data));
         </div>
 
         <div
-          onClick={() => navigate("/agent/loans?type=Vehicle")}
+          onClick={() => navigate("/agent/loans?type=Vehicle Loan")}
           className="cursor-pointer bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition"
         >
           <p className="text-gray-500 text-sm font-medium">
@@ -152,7 +152,7 @@ localStorage.setItem("agentDashboardStats", JSON.stringify(data));
           </h2>
         </div>
         <div
-          onClick={() => navigate("/agent/loans?type=Business")}
+          onClick={() => navigate("/agent/loans?type=Business Loan")}
           className="cursor-pointer bg-white rounded-2xl shadow-md p-6 hover:shadow-xl transition"
         >
           <p className="text-gray-500 text-sm font-medium">

@@ -209,12 +209,12 @@ const MyLoanDetails = () => {
     Uploaded Documents
   </h3>
 
-  <div className="grid gap-4 md:grid-cols-2">
+  <div className="grid gap-4 md:grid-cols-3">
     <div className="rounded-2xl bg-gray-50 p-4">
       <p className="mb-2 font-semibold text-gray-900">PAN Card</p>
       {loan.kycDetails?.panFile ? (
         <a
-          href={`http://localhost:5000/${loan.kycDetails.panFile.replace(/\\/g, "/")}`}
+          href={loan.kycDetails.panFile}
           target="_blank"
           rel="noreferrer"
           className="text-blue-700 hover:underline"
@@ -230,7 +230,7 @@ const MyLoanDetails = () => {
       <p className="mb-2 font-semibold text-gray-900">Aadhaar Card</p>
       {loan.kycDetails?.aadhaarFile ? (
         <a
-          href={`http://localhost:5000/${loan.kycDetails.aadhaarFile.replace(/\\/g, "/")}`}
+          href={loan.kycDetails.aadhaarFile}
           target="_blank"
           rel="noreferrer"
           className="text-blue-700 hover:underline"
@@ -249,7 +249,7 @@ const MyLoanDetails = () => {
           {loan.kycDetails.bankStatements.map((file, index) => (
             <a
               key={index}
-              href={`http://localhost:5000/${file.replace(/\\/g, "/")}`}
+              href={loan.kycDetails.bankStatements[index]}
               target="_blank"
               rel="noreferrer"
               className="block text-blue-700 hover:underline"
@@ -270,7 +270,7 @@ const MyLoanDetails = () => {
           {loan.kycDetails.itReturns.map((file, index) => (
             <a
               key={index}
-              href={`http://localhost:5000/${file.replace(/\\/g, "/")}`}
+              href={loan.kycDetails.itReturns[index]}
               target="_blank"
               rel="noreferrer"
               className="block text-blue-700 hover:underline"
@@ -284,14 +284,14 @@ const MyLoanDetails = () => {
       )}
     </div>
 
-    <div className="rounded-2xl bg-gray-50 p-4 md:col-span-2">
+    <div className="rounded-2xl bg-gray-50 p-4 ">
       <p className="mb-2 font-semibold text-gray-900">Payslips</p>
       {loan.kycDetails?.payslips?.length > 0 ? (
         <div className="space-y-2">
           {loan.kycDetails.payslips.map((file, index) => (
             <a
               key={index}
-              href={`http://localhost:5000/${file.replace(/\\/g, "/")}`}
+              href={loan.kycDetails.payslips[index] }
               target="_blank"
               rel="noreferrer"
               className="block text-blue-700 hover:underline"

@@ -32,31 +32,31 @@ export const getAgentDashboard = async (req, res) => {
     const homeLoans = await Loan.countDocuments({
       agentId,
       isArchived: false,
-      "loanDetails.loanType": "home",
+      "loanDetails.loanType": "Home Loan",
     });
 
     const personalLoans = await Loan.countDocuments({
       agentId,
       isArchived: false,
-      "loanDetails.loanType": "personal",
+      "loanDetails.loanType": "Personal Loan",
     });
 
     const educationLoans = await Loan.countDocuments({
       agentId,
       isArchived: false,
-      "loanDetails.loanType": "education",
+      "loanDetails.loanType": "Education Loan",
     });
 
     const vehicleLoans = await Loan.countDocuments({
       agentId,
       isArchived: false,
-      "loanDetails.loanType": "vehicle",
+      "loanDetails.loanType": "Vehicle Loan",
     });
 
     const businessLoans = await Loan.countDocuments({
       agentId,
       isArchived: false,
-      "loanDetails.loanType": "business",
+      "loanDetails.loanType": "Business Loan",
     });
 
     const recentLoans = await Loan.find({
@@ -130,8 +130,10 @@ export const getAgentLoans = async (req, res) => {
     }
 
     if (type) {
-      filter.$and.push({ "loanDetails.loanType": type });
-    }
+  filter.$and.push({
+    "loanDetails.loanType": { $regex: `^${type}$`, $options: "i" },
+  });
+}
 
     const loans = await Loan.find(filter)
       .populate("userObjectId", "name userId isDeleted")

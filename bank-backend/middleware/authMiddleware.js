@@ -5,8 +5,6 @@ export const protect = async (req, res, next) => {
   try {
     let token;
 
-    console.log("Headers:", req.headers.authorization);
-
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")
@@ -14,7 +12,6 @@ export const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
     }
 
-    console.log("Extracted token:", token);
 
     if (!token) {
       console.log("No token found");
@@ -22,8 +19,7 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token:", decoded);
-
+    
     const user = await User.findById(decoded.id).select("-password");
     console.log("User from DB:", user);
 

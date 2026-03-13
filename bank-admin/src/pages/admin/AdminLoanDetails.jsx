@@ -10,11 +10,20 @@ const AdminLoanDetails = () => {
   const [loan, setLoan] = useState(null);
   const [editing, setEditing] = useState(false);
   const [editedLoan, setEditedLoan] = useState(null);
+  const [agents, setAgents] = useState([]);
+const [selectedAgent, setSelectedAgent] = useState("");
+const [assigning, setAssigning] = useState(false);
+const [assignMessage, setAssignMessage] = useState("");
+const [assignError, setAssignError] = useState("");
+
+
+  
 
   useEffect(() => {
-    if (!token) return;
-    fetchLoan();
-  }, [loanId, token]);
+  if (!token) return;
+  fetchLoan();
+  fetchAgents();
+}, [loanId, token]);
 
   const fetchLoan = async () => {
     try {
@@ -36,12 +45,29 @@ const AdminLoanDetails = () => {
       const data = await res.json();
       setLoan(data);
       setEditedLoan(data);
+      setSelectedAgent(data.agentId?._id || "");
     } catch (error) {
       console.error(error);
       setLoan(null);
       setEditedLoan(null);
     }
   };
+
+  const fetchAgents = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/admin/agents", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    setAgents(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error(error);
+    setAgents([]);
+  }
+};
 
   const handleSave = async () => {
     try {
@@ -83,6 +109,45 @@ const AdminLoanDetails = () => {
     setEditedLoan(loan);
     setEditing(false);
   };
+
+  const handleAssignAgent = async () => {
+  if (!selectedAgent) {
+    setAssignError("Please select an agent");
+    return;
+  }
+
+  try {
+    setAssigning(true);
+    setAssignError("");
+    setAssignMessage("");
+
+    const res = await fetch(
+      `http://localhost:5000/api/admin/loans/${loan.loanId}/assign-agent`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ agentId: selectedAgent }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to assign agent");
+    }
+
+    setAssignMessage("Agent assigned successfully");
+    await fetchLoan();
+  } catch (error) {
+    console.error(error);
+    setAssignError(error.message || "Something went wrong");
+  } finally {
+    setAssigning(false);
+  }
+};
  
 
   if (!loan || !editedLoan)
@@ -119,6 +184,57 @@ const AdminLoanDetails = () => {
           )}
         </div>
         <hr className="my-6 border-gray-200" />
+        <div>
+  <h2 className="mb-4 text-xl font-semibold text-gray-800">Assign Agent</h2>
+
+  <p className="mb-4 text-sm text-gray-600">
+    Current Assigned Agent:{" "}
+    <span className="font-medium text-gray-900">
+      {loan.agentId?.name || "Unassigned"}
+    </span>
+  </p>
+
+  {assignError && (
+    <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+      {assignError}
+    </div>
+  )}
+
+  {assignMessage && (
+    <div className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+      {assignMessage}
+    </div>
+  )}
+
+  <div className="flex flex-col gap-4 md:flex-row md:items-center">
+    <select
+      value={selectedAgent}
+      onChange={(e) => setSelectedAgent(e.target.value)}
+      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 outline-none focus:border-blue-500 md:w-80"
+    >
+      <option value="">Select Agent</option>
+      {agents.map((agent) => (
+        <option key={agent._id} value={agent._id}>
+          {agent.name} ({agent.agentId})
+        </option>
+      ))}
+    </select>
+
+    <button
+      onClick={handleAssignAgent}
+      disabled={assigning}
+      className="rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+    >
+      {assigning
+        ? "Saving..."
+        : loan.agentId
+        ? "Change Agent"
+        : "Assign Agent"}
+    </button>
+  </div>
+</div>
+
+<hr className="my-6 border-gray-200" />
       </div>
       {!editing ? (
         <button
@@ -184,12 +300,6 @@ const AdminLoanDetails = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-gray-500">Company ID</p>
-            <p className="text-base font-medium">
-              {loan.employmentDetails?.companyId || "-"}
-            </p>
-          </div>
-          <div>
             <p className="text-sm text-gray-500">Company</p>
             <p className="text-base font-medium">
               {loan.employmentDetails?.companyName || "-"}
@@ -243,6 +353,115 @@ const AdminLoanDetails = () => {
         </div>
       </div>
     )}
+
+    {loan.kycDetails && (
+  <>
+    <hr className="my-6 border-gray-200" />
+
+    <div>
+      <h2 className="mb-4 text-xl font-semibold text-gray-800">
+        Uploaded Documents
+      </h2>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <div className="rounded-xl border border-gray-200 p-4">
+          <p className="mb-2 font-medium text-gray-800">PAN Card</p>
+          {loan.kycDetails?.panFile ? (
+            <a
+              href={loan.kycDetails.panFile}
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              View PAN Card
+            </a>
+          ) : (
+            <p className="text-sm text-red-500">Not uploaded</p>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4">
+          <p className="mb-2 font-medium text-gray-800">Aadhaar Card</p>
+          {loan.kycDetails?.aadhaarFile ? (
+            <a
+              href={loan.kycDetails.aadhaarFile}
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              View Aadhaar Card
+            </a>
+          ) : (
+            <p className="text-sm text-red-500">Not uploaded</p>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4">
+          <p className="mb-2 font-medium text-gray-800">Bank Statements</p>
+          {loan.kycDetails?.bankStatements?.length > 0 ? (
+            <div className="space-y-2">
+              {loan.kycDetails.bankStatements.map((file, index) => (
+                <a
+                  key={index}
+                  href={loan.kycDetails.bankStatements[index]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-blue-600 hover:underline"
+                >
+                  View Bank Statement {index + 1}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-red-500">Not uploaded</p>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4">
+          <p className="mb-2 font-medium text-gray-800">IT Returns</p>
+          {loan.kycDetails?.itReturns?.length > 0 ? (
+            <div className="space-y-2">
+              {loan.kycDetails.itReturns.map((file, index) => (
+                <a
+                  key={index}
+                  href={loan.kycDetails.itReturns[index]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-blue-600 hover:underline"
+                >
+                  View IT Return {index + 1}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-red-500">Not uploaded</p>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-gray-200 p-4">
+          <p className="mb-2 font-medium text-gray-800">Payslips</p>
+          {loan.kycDetails?.payslips?.length > 0 ? (
+            <div className="space-y-2">
+              {loan.kycDetails.payslips.map((file, index) => (
+                <a
+                  key={index}
+                  href={loan.kycDetails.payslips[index] }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block text-blue-600 hover:underline"
+                >
+                  View Payslip {index + 1}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-red-500">Not uploaded</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </>
+)}
 
     {editing && (
       <>
@@ -335,24 +554,6 @@ const AdminLoanDetails = () => {
             Employment Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Company ID</p>
-            <input
-              type="text"
-              placeholder="Company ID"
-              value={editedLoan?.employmentDetails?.companyId || ""}
-              onChange={(e) =>
-                setEditedLoan({
-                  ...editedLoan,
-                  employmentDetails: {
-                    ...editedLoan.employmentDetails,
-                    companyId: e.target.value,
-                  },
-                })
-              }
-              className="border rounded px-3 py-2 w-full"
-            />
-            </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Company Name</p>
             <input

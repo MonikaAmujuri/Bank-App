@@ -6,9 +6,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 const AdminLoans = () => {
   const { token } = useAuth();
   const [loans, setLoans] = useState([]);
-  const [agents, setAgents] = useState([]);
-  const [selectedAgents, setSelectedAgents] = useState({});
-  const [assigningLoanId, setAssigningLoanId] = useState("");
   const navigate = useNavigate();
   const [showArchived, setShowArchived] = useState(false);
   const [searchParams] = useSearchParams();
@@ -43,25 +40,10 @@ const AdminLoans = () => {
     }
   };
 
-  const fetchAgents = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/admin/agents", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setAgents(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
+  
   useEffect(() => {
     if (token) {
       fetchLoans();
-      fetchAgents();
     }
   }, [showArchived, token, loanTypeFilter]);
 
@@ -105,45 +87,6 @@ const AdminLoans = () => {
     }
   };
 
-  const handleAssignAgent = async (loanId, e) => {
-    e.stopPropagation();
-
-    const agentId = selectedAgents[loanId];
-
-    if (!agentId) {
-      alert("Please select an agent first");
-      return;
-    }
-
-    try {
-      setAssigningLoanId(loanId);
-
-      const res = await fetch(
-        `http://localhost:5000/api/admin/loans/${loanId}/assign-agent`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ agentId }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to assign agent");
-      }
-
-      fetchLoans();
-    } catch (error) {
-      console.error(error);
-      alert(error.message || "Something went wrong");
-    } finally {
-      setAssigningLoanId("");
-    }
-  };
 
   return (
     <div>
@@ -216,9 +159,7 @@ const AdminLoans = () => {
 
                 <td className="p-4">
                   {loan.agentId?.name ? (
-                    <span className="font-medium text-gray-800">
-                      {loan.agentId.name}
-                    </span>
+                    <span className="font-medium text-gray-800">{loan.agentId.name}</span>
                   ) : (
                     <span className="text-gray-500">Unassigned</span>
                   )}
@@ -234,37 +175,6 @@ const AdminLoans = () => {
                       className="rounded-md bg-indigo-100 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-200"
                     >
                       View
-                    </button>
-
-                    <select
-                      value={selectedAgents[loan.loanId] || ""}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) =>
-                        setSelectedAgents((prev) => ({
-                          ...prev,
-                          [loan.loanId]: e.target.value,
-                        }))
-                      }
-                      className="rounded-md border border-gray-300 px-3 py-1.5 text-sm outline-none focus:border-blue-500"
-                    >
-                      <option value="">Select Agent</option>
-                      {agents.map((agent) => (
-                        <option key={agent._id} value={agent._id}>
-                          {agent.name} ({agent.agentId})
-                        </option>
-                      ))}
-                    </select>
-
-                    <button
-                      onClick={(e) => handleAssignAgent(loan.loanId, e)}
-                      disabled={assigningLoanId === loan.loanId}
-                      className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-                    >
-                      {assigningLoanId === loan.loanId
-                        ? "Saving..."
-                        : loan.agentId
-                        ? "Change Agent"
-                        : "Assign Agent"}
                     </button>
 
                     {loan.isArchived ? (

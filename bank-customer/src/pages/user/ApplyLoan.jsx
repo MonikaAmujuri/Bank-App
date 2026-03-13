@@ -13,7 +13,6 @@ const ApplyLoan = () => {
     address: "",
     loanType: "",
     loanAmount: "",
-    companyId: "",
     companyName: "",
     location: "",
     salary: "",
@@ -214,7 +213,6 @@ const [submitError, setSubmitError] = useState("");
     data.append("address", formData.address);
     data.append("loanType", formData.loanType);
     data.append("loanAmount", formData.loanAmount);
-    data.append("companyId", formData.companyId);
     data.append("companyName", formData.companyName);
     data.append("location", formData.location);
     data.append("salary", formData.salary);
@@ -453,21 +451,6 @@ if (profileLoading) {
                   placeholder="Enter loan amount"
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   required
-                />
-                
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Company ID
-                </label>
-                <input
-                  type="text"
-                  name="companyId"
-                  value={formData.companyId}
-                  onChange={handleChange}
-                  placeholder="Enter company ID"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
                 
               </div>

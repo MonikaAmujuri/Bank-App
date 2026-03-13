@@ -12,27 +12,27 @@ export const getDashboardStats = async (req, res) => {
     });
     const loansCount = await Loan.countDocuments();
     const homeLoans = await Loan.countDocuments({
-      "loanDetails.loanType": "home",
+      "loanDetails.loanType": "Home Loan",
       isArchived: false,
     });
 
     const personalLoans = await Loan.countDocuments({
-      "loanDetails.loanType": "personal",
+      "loanDetails.loanType": "Personal Loan",
       isArchived: false,
     });
 
     const educationLoans = await Loan.countDocuments({
-      "loanDetails.loanType": "education",
+      "loanDetails.loanType": "Education Loan",
       isArchived: false,
     });
 
     const businessLoans = await Loan.countDocuments({
-      "loanDetails.loanType": "business",
+      "loanDetails.loanType": "Business Loan",
       isArchived: false,
     });
 
     const vehicleLoans = await Loan.countDocuments({
-      "loanDetails.loanType": "vehicle",
+      "loanDetails.loanType": "Vehicle Loan",
       isArchived: false,
     });
 

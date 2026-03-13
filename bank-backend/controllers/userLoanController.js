@@ -78,7 +78,8 @@ export const uploadPanCard = async (req, res) => {
 
     user.documents = user.documents || {};
     user.documents.panCard = {
-      url: req.file.path.replace(/\\/g, "/"),
+      url: req.file.path,
+      public_id: req.file.filename,
       filename: req.file.originalname,
       uploadedAt: new Date(),
     };
@@ -109,7 +110,8 @@ export const uploadAadharCard = async (req, res) => {
 
     user.documents = user.documents || {};
     user.documents.aadharCard = {
-      url: req.file.path.replace(/\\/g, "/"),
+      url: req.file.path,
+      public_id: req.file.filename,
       filename: req.file.originalname,
       uploadedAt: new Date(),
     };
@@ -146,7 +148,6 @@ export const updateMyLoan = async (req, res) => {
     const {
       loanType,
       loanAmount,
-      companyId,
       companyName,
       location,
       salary,
@@ -166,7 +167,6 @@ export const updateMyLoan = async (req, res) => {
 
 loan.employmentDetails = {
   ...loan.employmentDetails,
-  companyId,
   companyName,
   location,
   salary: Number(salary),
@@ -181,28 +181,33 @@ const updatedKycDetails = {
 };
 
 if (files.panFile?.[0]) {
-  updatedKycDetails.panFile = files.panFile[0].path.replace(/\\/g, "/");
+  updatedKycDetails.panFile = files.panFile[0].path;
+  updatedKycDetails.panFilePublicId = files.panFile[0].filename;
 }
 
 if (files.aadhaarFile?.[0]) {
-  updatedKycDetails.aadhaarFile = files.aadhaarFile[0].path.replace(/\\/g, "/");
+  updatedKycDetails.aadhaarFile = files.aadhaarFile[0].path;
+  updatedKycDetails.aadhaarFilePublicId = files.aadhaarFile[0].filename;
 }
 
 if (files.bankStatements?.length) {
-  updatedKycDetails.bankStatements = files.bankStatements.map((file) =>
-    file.path.replace(/\\/g, "/")
+  updatedKycDetails.bankStatements = files.bankStatements.map((file) => file.path);
+  updatedKycDetails.bankStatementsPublicIds = files.bankStatements.map(
+    (file) => file.filename
   );
 }
 
 if (files.itReturns?.length) {
-  updatedKycDetails.itReturns = files.itReturns.map((file) =>
-    file.path.replace(/\\/g, "/")
+  updatedKycDetails.itReturns = files.itReturns.map((file) => file.path);
+  updatedKycDetails.itReturnsPublicIds = files.itReturns.map(
+    (file) => file.filename
   );
 }
 
 if (files.payslips?.length) {
-  updatedKycDetails.payslips = files.payslips.map((file) =>
-    file.path.replace(/\\/g, "/")
+  updatedKycDetails.payslips = files.payslips.map((file) => file.path);
+  updatedKycDetails.payslipsPublicIds = files.payslips.map(
+    (file) => file.filename
   );
 }
 
@@ -211,8 +216,6 @@ loan.kycDetails = updatedKycDetails;
 loan.markModified("loanDetails");
 loan.markModified("employmentDetails");
 loan.markModified("kycDetails");
-
-await loan.save();
 
     await loan.save();
 
@@ -226,20 +229,22 @@ await loan.save();
       user.documents = user.documents || {};
 
       if (files.panFile?.[0]) {
-        user.documents.panCard = {
-          url: files.panFile[0].path.replace(/\\/g, "/"),
-          filename: files.panFile[0].originalname,
-          uploadedAt: new Date(),
-        };
-      }
+  user.documents.panCard = {
+    url: files.panFile[0].path,
+    public_id: files.panFile[0].filename,
+    filename: files.panFile[0].originalname,
+    uploadedAt: new Date(),
+  };
+}
 
-      if (files.aadhaarFile?.[0]) {
-        user.documents.aadharCard = {
-          url: files.aadhaarFile[0].path.replace(/\\/g, "/"),
-          filename: files.aadhaarFile[0].originalname,
-          uploadedAt: new Date(),
-        };
-      }
+if (files.aadhaarFile?.[0]) {
+  user.documents.aadharCard = {
+    url: files.aadhaarFile[0].path,
+    public_id: files.aadhaarFile[0].filename,
+    filename: files.aadhaarFile[0].originalname,
+    uploadedAt: new Date(),
+  };
+}
 
       await user.save();
     }
