@@ -59,12 +59,20 @@ export const getAgentDashboard = async (req, res) => {
       "loanDetails.loanType": "Business Loan",
     });
 
-    const recentLoans = await Loan.find({
-      agentId,
-      isArchived: false,
-    })
-      .sort({ createdAt: -1 })
-      .limit(5);
+    const pendingLoans = await Loan.countDocuments({
+  agentId: req.user._id,
+  status: "pending",
+  isArchived: false,
+});
+
+const recentLoans = await Loan.find({
+  agentId: req.user._id,
+  $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+})
+  .select("loanId status loanDetails userObjectId createdAt userId")
+  .populate("userObjectId", "userId")
+  .sort({ createdAt: -1 })
+  .limit(5);
 
     res.json({
       totalUsers,
@@ -76,6 +84,7 @@ export const getAgentDashboard = async (req, res) => {
       educationLoans,
       vehicleLoans,
       businessLoans,
+      pendingLoans,
       recentLoans,
     });
   } catch (error) {

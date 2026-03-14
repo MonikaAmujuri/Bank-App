@@ -184,232 +184,304 @@ const handleStartLoan = async (userId) => {
 };
 
   return (
-      <div className="max-w-6xl mx-auto">
+  <div className="space-y-8">
+    <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-100">
+            Customer Management
+          </p>
+          <h1 className="text-3xl font-bold md:text-4xl">My Customers</h1>
+          <p className="mt-3 max-w-2xl text-indigo-100">
+            Manage your assigned customers, review their status, and start loan
+            applications from one place.
+          </p>
+        </div>
 
-  {/* Header */}
-  <div className="flex justify-between items-center mb-6">
-    <h1 className="text-3xl font-semibold">My Users</h1>
+        <button
+          onClick={() => setShowForm(true)}
+          className="rounded-2xl bg-white px-6 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50"
+        >
+          + Add Customer
+        </button>
+      </div>
+    </section>
 
-    <button
-      onClick={() => setShowForm(true)}
-      className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-    >
-      + Add Customer
-    </button>
-  </div>
+    
 
-  <div className="flex gap-3 mb-4">
-  <button
-    onClick={() => setShowDeleted(false)}
-    className={`px-4 py-1 rounded ${
-      !showDeleted ? "bg-indigo-600 text-white" : "bg-gray-200"
-    }`}
-  >
-    Active Customers
-  </button>
+    <section className="rounded-3xl bg-white p-6 shadow-sm">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Customer Records
+          </h2>
+          <p className="mt-1 text-gray-500">
+            View customer details and start loan workflows quickly.
+          </p>
+        </div>
 
-  <button
-    onClick={() => setShowDeleted(true)}
-    className={`px-4 py-1 rounded ${
-      showDeleted ? "bg-indigo-600 text-white" : "bg-gray-200"
-    }`}
-  >
-    Deleted Customers
-  </button>
-</div>
-
-
-  {/* Table */}
-  <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-    <table className="w-full">
-      <thead className="bg-gray-50 border-b">
-        <tr>
-          <th className="text-left px-6 py-3">Customer ID</th>
-          <th className="text-left px-6 py-3">Name</th>
-          <th className="text-left px-6 py-3">Email</th>
-          <th className="text-left px-6 py-3">Created</th>
-          <th className="text-left px-6 py-3">Status</th>
-          <th className="text-left px-6 py-3">Action</th>
-        </tr>
-      </thead>
-
-      <tbody>
-            {users.map((user) => {
-  const isUserInactive = user.isDeleted || !user.isActive;
-
-  return (
-    <tr key={user._id} 
-    className="border-b hover:bg-gray-50"
-    onClick={() => navigate(`/agent/users/${user._id}`)}
-    >
-      <td className="px-6 py-4">{user.userId}</td>
-      <td className="px-6 py-4">{user.name}</td>
-      <td className="px-6 py-4">{user.email}</td>
-      <td className="px-6 py-4">
-        {new Date(user.createdAt).toLocaleDateString()}
-      </td>
-
-      <td className="py-3">
-        {isUserInactive ? (
-          <span className="px-3 py-1 text-xs font-medium bg-red-100 text-red-600 rounded-full">
-            Inactive
-          </span>
-        ) : (
-          <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-full">
-            Active
-          </span>
-        )}
-      </td>
-
-      <td>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleStartLoan(user.userId);
-            }}
-            disabled={isUserInactive}
-            className={`px-3 py-1 rounded-md ${
-              isUserInactive
-                ? "bg-gray-300 cursor-not-allowed text-gray-600"
-                : "bg-indigo-600 text-white hover:bg-indigo-700"
+            onClick={() => setShowDeleted(false)}
+            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
+              !showDeleted
+                ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            Start Loan
+            Active Customers
           </button>
 
-
-          {user.isDeleted ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRestore(user.userId);
-              }}
-              className="px-3 py-1 bg-green-500 text-white rounded-md"
-            >
-              Restore
-            </button>
-          ) : (
-            <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(user.userId);
-                }}
-              className="px-3 py-1 bg-red-500 text-white rounded-md"
-            >
-              Remove
-            </button>  
-          )}
-          
+          <button
+            onClick={() => setShowDeleted(true)}
+            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
+              showDeleted
+                ? "bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            Inactive Customers
+          </button>
         </div>
-      </td>
-    </tr>
-  );
-})}
-        
-      </tbody>
-    </table>
-    
+      </div>
+
+      {users.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1000px] text-left">
+            <thead>
+              <tr className="border-b border-gray-100 text-sm text-gray-500">
+                <th className="pb-4 font-semibold">Customer ID</th>
+                <th className="pb-4 font-semibold">Name</th>
+                <th className="pb-4 font-semibold">Email</th>
+                <th className="pb-4 font-semibold">Created</th>
+                <th className="pb-4 font-semibold">Status</th>
+                <th className="pb-4 font-semibold">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {users.map((user) => {
+                const isUserInactive = user.isDeleted || !user.isActive;
+
+                return (
+                  <tr
+                    key={user._id}
+                    className="cursor-pointer border-b border-gray-50 transition hover:bg-gray-50"
+                    onClick={() => navigate(`/agent/users/${user._id}`)}
+                  >
+                    <td className="py-5 font-semibold text-gray-900">
+                      {user.userId}
+                    </td>
+
+                    <td className="py-5">
+                      <div>
+                        <p className="font-medium text-gray-900">{user.name}</p>
+                        <p className="mt-1 text-sm text-gray-400">
+                          Customer profile
+                        </p>
+                      </div>
+                    </td>
+
+                    <td className="py-5 text-gray-700">{user.email}</td>
+
+                    <td className="py-5 text-gray-700">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+
+                    <td className="py-5">
+                      {isUserInactive ? (
+                        <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600">
+                          Inactive
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-600">
+                          Active
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="py-5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/agent/users/${user._id}`);
+                          }}
+                          className="rounded-xl bg-indigo-100 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-200"
+                        >
+                          View
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartLoan(user.userId);
+                          }}
+                          disabled={isUserInactive}
+                          className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                            isUserInactive
+                              ? "cursor-not-allowed bg-gray-200 text-gray-500"
+                              : "bg-blue-600 text-white hover:bg-blue-700"
+                          }`}
+                        >
+                          Start Loan
+                        </button>
+
+                        {user.isDeleted ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRestore(user.userId);
+                            }}
+                            className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
+                          >
+                            Restore
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(user.userId);
+                            }}
+                            className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
+          <h3 className="text-xl font-semibold text-gray-800">
+            No customers found
+          </h3>
+          <p className="mt-2 text-gray-500">
+            There are no customer records in this view right now.
+          </p>
+        </div>
+      )}
+    </section>
+
+    {showForm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl">
+          <div className="mb-6">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-indigo-600">
+              Add Customer
+            </p>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Create New Customer
+            </h2>
+            <p className="mt-2 text-gray-500">
+              Add a new customer profile and generate initial login credentials.
+            </p>
+          </div>
+
+          <form onSubmit={handleCreateUser} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <input
+                type="text"
+                placeholder="Name"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              <input
+                type="text"
+                placeholder="Phone Number"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+
+              <input
+                type="text"
+                placeholder="PAN Number"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                value={panNumber}
+                onChange={(e) => setPanNumber(e.target.value)}
+              />
+
+              <input
+                type="text"
+                placeholder="Aadhar Number"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                value={aadharNumber}
+                onChange={(e) => setAadharNumber(e.target.value)}
+              />
+
+              <input
+                type="text"
+                placeholder="Address"
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 md:col-span-2"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+
+            <div className="rounded-2xl bg-gray-50 p-4">
+              <p className="mb-3 text-sm font-medium text-gray-600">
+                Login Password
+              </p>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Generated Password"
+                  className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none"
+                  value={generatedPassword}
+                  readOnly
+                />
+
+                <button
+                  type="button"
+                  onClick={generatePassword}
+                  className="rounded-xl bg-gray-200 px-4 font-medium text-gray-700 transition hover:bg-gray-300"
+                >
+                  Generate
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="rounded-xl border border-gray-300 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition hover:bg-indigo-700"
+              >
+                Create Customer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
   </div>
-      {showForm && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-    <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
-
-      <h2 className="text-xl font-semibold mb-6">Create New Customer</h2>
-
-      <form onSubmit={handleCreateUser} className="space-y-4">
-
-        <input
-          type="text"
-          placeholder="Name"
-          className="w-full border px-3 py-2 rounded-lg"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full border px-3 py-2 rounded-lg"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <input
-          type="text"
-          placeholder="Phone Number"
-          className="w-full border px-3 py-2 rounded-lg"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="PAN Number"
-          className="w-full border px-3 py-2 rounded-lg"
-          value={panNumber}
-          onChange={(e) => setPanNumber(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="Aadhar Number"
-          className="w-full border px-3 py-2 rounded-lg"
-          value={aadharNumber}
-          onChange={(e) => setAadharNumber(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="Address"
-          className="w-full border px-3 py-2 rounded-lg"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-        />
-
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Generated Password"
-            className="flex-1 border px-3 py-2 rounded-lg bg-gray-100"
-            value={generatedPassword}
-            readOnly
-          />
-
-          <button
-            type="button"
-            onClick={generatePassword}
-            className="bg-gray-200 px-3 rounded-lg"
-          >
-            Generate
-          </button>
-        </div>
-
-        <div className="flex justify-end gap-3 pt-4">
-          <button
-            type="button"
-            onClick={() => setShowForm(false)}
-            className="px-4 py-2 rounded-lg border"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-          >
-            Create
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-)}
-    </div>
-  );
+);
 };
 
 export default AgentUsers;

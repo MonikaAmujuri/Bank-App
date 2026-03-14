@@ -231,22 +231,97 @@ const AgentLoans = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-semibold mb-2">{getPageTitle()}</h1>
-        <p className="text-gray-500">
-          Manage and track all loan records assigned to you.
+  <div className="space-y-8">
+    <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-100">
+            Loan Management
+          </p>
+          <h1 className="text-3xl font-bold md:text-4xl">{getPageTitle()}</h1>
+          <p className="mt-3 max-w-2xl text-indigo-100">
+            Manage, review, and track all loan records assigned to you.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => navigate("/agent/loans?status=pending")}
+            className="rounded-2xl bg-white px-5 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50"
+          >
+            Pending Loans
+          </button>
+
+          <button
+            onClick={() => navigate("/agent/loans")}
+            className="rounded-2xl border border-white/40 px-5 py-3 font-medium text-white transition hover:bg-white/10"
+          >
+            View All
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section className="grid grid-cols-1 gap-6 md:grid-cols-4">
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Visible Loans</p>
+        <h2 className="mt-3 text-4xl font-bold text-indigo-600">
+          {filteredLoans.length}
+        </h2>
+        <p className="mt-2 text-sm text-gray-400">
+          Loans in the current filtered view
         </p>
       </div>
 
-      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-        <div className="flex gap-4">
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Draft Loans</p>
+        <h2 className="mt-3 text-4xl font-bold text-amber-500">
+          {filteredLoans.filter((loan) => loan.status === "draft").length}
+        </h2>
+        <p className="mt-2 text-sm text-gray-400">
+          Incomplete or editable loans
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Pending Loans</p>
+        <h2 className="mt-3 text-4xl font-bold text-blue-600">
+          {filteredLoans.filter((loan) => loan.status === "pending").length}
+        </h2>
+        <p className="mt-2 text-sm text-gray-400">
+          Waiting for final review or approval
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Approved Loans</p>
+        <h2 className="mt-3 text-4xl font-bold text-green-600">
+          {filteredLoans.filter((loan) => loan.status === "approved").length}
+        </h2>
+        <p className="mt-2 text-sm text-gray-400">
+          Successfully approved records
+        </p>
+      </div>
+    </section>
+
+    <section className="rounded-3xl bg-white p-6 shadow-sm">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Loan Records
+          </h2>
+          <p className="mt-1 text-gray-500">
+            Review customer loan details and continue the workflow from here.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
           <button
             onClick={() => setShowArchived(false)}
-            className={`px-5 py-2 rounded-lg font-medium transition ${
+            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
               !showArchived
-                ? "bg-indigo-600 text-white shadow"
-                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             Active Loans
@@ -254,161 +329,152 @@ const AgentLoans = () => {
 
           <button
             onClick={() => setShowArchived(true)}
-            className={`px-5 py-2 rounded-lg font-medium transition ${
+            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
               showArchived
-                ? "bg-indigo-600 text-white shadow"
-                : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                ? "bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            InActive Loans
+            Inactive Loans
           </button>
-        </div>
 
-        {(statusFilter || typeFilter) && (
-          <button
-            onClick={() => navigate("/agent/loans")}
-            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-          >
-            Clear Filters
-          </button>
-        )}
+          {(statusFilter || typeFilter) && (
+            <button
+              onClick={() => navigate("/agent/loans")}
+              className="rounded-2xl bg-gray-100 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-200"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="mb-4 flex justify-between items-center">
+      <div className="mb-5 flex items-center justify-between">
         <p className="text-sm text-gray-500">
           Showing {filteredLoans.length} loan
           {filteredLoans.length !== 1 ? "s" : ""}
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-        {errorMessage && (
-          <p className="px-6 py-4 text-sm text-red-600">{errorMessage}</p>
-        )}
+      {errorMessage && (
+        <div className="mb-4 rounded-2xl bg-red-50 px-5 py-4 text-sm text-red-600">
+          {errorMessage}
+        </div>
+      )}
 
-        {!errorMessage && filteredLoans.length === 0 ? (
-          <div className="px-6 py-12 text-center text-gray-500">
-            No loans found.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[900px]">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Loan ID
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Customer ID
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Loan Type
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Amount
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Created
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Assigned Agent
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-700">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+      {!errorMessage && filteredLoans.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
+          <h3 className="text-xl font-semibold text-gray-800">
+            No loans found
+          </h3>
+          <p className="mt-2 text-gray-500">
+            No loan records match the current filter.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1100px] text-left">
+            <thead>
+              <tr className="border-b border-gray-100 text-sm text-gray-500">
+                <th className="pb-4 font-semibold">Loan ID</th>
+                <th className="pb-4 font-semibold">Customer</th>
+                <th className="pb-4 font-semibold">Loan Type</th>
+                <th className="pb-4 font-semibold">Amount</th>
+                <th className="pb-4 font-semibold">Status</th>
+                <th className="pb-4 font-semibold">Created</th>
+                <th className="pb-4 font-semibold">Assigned Agent</th>
+                <th className="pb-4 font-semibold">Actions</th>
+              </tr>
+            </thead>
 
-              <tbody>
-                {filteredLoans.map((loan) => (
-                  <tr
-                    key={loan._id}
-                    className="border-b hover:bg-gray-50 transition"
-                  >
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      {loan.loanId}
-                    </td>
+            <tbody>
+              {filteredLoans.map((loan) => (
+                <tr
+                  key={loan._id}
+                  className="border-b border-gray-50 transition hover:bg-gray-50"
+                >
+                  <td className="py-5 font-semibold text-gray-900">
+                    {loan.loanId}
+                  </td>
 
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-gray-900">{loan.userId}</span>
-                        {loan.userObjectId?.isDeleted && (
-                          <span className="mt-1 inline-block w-fit px-2 py-0.5 text-xs bg-red-100 text-red-600 rounded-full">
-                            User Inactive
-                          </span>
-                        )}
-                      </div>
-                    </td>
+                  <td className="py-5">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-900">
+                        {loan.userId}
+                      </span>
 
-                    <td className="px-6 py-4 text-gray-700">
-                      {formatLoanType(loan.loanDetails?.loanType)}
-                    </td>
+                      {loan.userObjectId?.isDeleted && (
+                        <span className="mt-1 inline-block w-fit rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-600">
+                          User Inactive
+                        </span>
+                      )}
+                    </div>
+                  </td>
 
-                    <td className="px-6 py-4 text-gray-700">
-                      {formatAmount(loan.loanDetails?.amount)}
-                    </td>
+                  <td className="py-5 text-gray-700">
+                    {formatLoanType(loan.loanDetails?.loanType)}
+                  </td>
 
-                    <td className="px-6 py-4">
-                      {getStatusBadge(loan.status)}
-                    </td>
+                  <td className="py-5 text-gray-800">
+                    {formatAmount(loan.loanDetails?.amount)}
+                  </td>
 
-                    <td className="px-6 py-4 text-gray-600">
-                      {new Date(loan.createdAt).toLocaleDateString()}
-                    </td>
+                  <td className="py-5">{getStatusBadge(loan.status)}</td>
 
-                    <td className="px-6 py-4 text-gray-700">
-                      {loan.agentId ? loan.agentId.name : "Unassigned"}
-                    </td>
+                  <td className="py-5 text-gray-600">
+                    {new Date(loan.createdAt).toLocaleDateString()}
+                  </td>
 
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        {!showArchived && (
-                          <>
-                            <button
-                              onClick={() => handleView(loan.loanId)}
-                              disabled={loan.userObjectId?.isDeleted}
-                              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
-                                loan.userObjectId?.isDeleted
-                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                  : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-                              }`}
-                            >
-                              View
-                            </button>
+                  <td className="py-5 text-gray-700">
+                    {loan.agentId ? loan.agentId.name : "Unassigned"}
+                  </td>
 
-                            {loan.status === "draft" && (
-                              <button
-                                onClick={() => handleDelete(loan.loanId)}
-                                className="px-3 py-1 rounded-md text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition"
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </>
-                        )}
-
-                        {showArchived && (
+                  <td className="py-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {!showArchived && (
+                        <>
                           <button
-                            onClick={() => handleRestore(loan.loanId)}
-                            className="px-3 py-1 rounded-md text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 transition"
+                            onClick={() => handleView(loan.loanId)}
+                            disabled={loan.userObjectId?.isDeleted}
+                            className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                              loan.userObjectId?.isDeleted
+                                ? "cursor-not-allowed bg-gray-200 text-gray-400"
+                                : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                            }`}
                           >
-                            Restore
+                            View
                           </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+
+                          {loan.status === "draft" && (
+                            <button
+                              onClick={() => handleDelete(loan.loanId)}
+                              className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </>
+                      )}
+
+                      {showArchived && (
+                        <button
+                          onClick={() => handleRestore(loan.loanId)}
+                          className="rounded-xl bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100"
+                        >
+                          Restore
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  </div>
+);
 };
 
 export default AgentLoans;

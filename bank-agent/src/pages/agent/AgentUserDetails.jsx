@@ -164,227 +164,397 @@ const handleCopyPassword = async () => {
 };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold">Customer Details</h1>
+  <div className="space-y-8">
+    <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-100">
+            Customer Profile
+          </p>
+          <h1 className="text-3xl font-bold md:text-4xl">Customer Details</h1>
+          <p className="mt-3 max-w-2xl text-indigo-100">
+            Review customer information, manage account details, and track their
+            full loan history.
+          </p>
+        </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => setShowEditModal(true)}
+            className="rounded-2xl bg-white px-5 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50"
+          >
+            Edit Customer
+          </button>
 
-              <button
-                  onClick={() => setShowEditModal(true)}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-              >
-                  Edit
-              </button>
-        <button
-          onClick={() => handleResetPassword(data.user._id)}
-          className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
+          <button
+            onClick={() => handleResetPassword(data.user._id)}
+            className="rounded-2xl bg-yellow-400 px-5 py-3 font-medium text-gray-900 transition hover:bg-yellow-300"
+          >
+            Reset Password
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Customer ID</p>
+        <h2 className="mt-3 text-3xl font-bold text-indigo-600">
+          {data.user.userId || "-"}
+        </h2>
+        <p className="mt-2 text-sm text-gray-400">Unique customer reference</p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Status</p>
+        <h2
+          className={`mt-3 text-3xl font-bold ${
+            data.user.isDeleted ? "text-red-500" : "text-green-600"
+          }`}
         >
-          Reset Password
-        </button>
+          {data.user.isDeleted ? "Inactive" : "Active"}
+        </h2>
+        <p className="mt-2 text-sm text-gray-400">
+          Current availability for loan processing
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Total Loans</p>
+        <h2 className="mt-3 text-3xl font-bold text-blue-600">
+          {data.loans.length}
+        </h2>
+        <p className="mt-2 text-sm text-gray-400">
+          Loans linked to this customer
+        </p>
+      </div>
+    </section>
+
+    <section className="rounded-3xl bg-white p-6 shadow-sm">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Profile Information
+          </h2>
+          <p className="mt-1 text-gray-500">
+            Customer identity and contact details.
+          </p>
+        </div>
+
+        <div
+          className={`rounded-full px-4 py-2 text-sm font-semibold ${
+            data.user.isDeleted
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-700"
+          }`}
+        >
+          {data.user.isDeleted ? "Inactive Customer" : "Active Customer"}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-2xl bg-gray-50 p-5">
+          <p className="mb-2 text-sm text-gray-500">Customer ID</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {data.user.userId || "-"}
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <p><strong>Customer ID:</strong> {data.user.userId}</p>
-          <p><strong>Name:</strong> {data.user.name}</p>
-          <p><strong>Email:</strong> {data.user.email}</p>
-          <p><strong>Phone:</strong> {data.user.phone || "-"}</p>
-          <p><strong>PAN:</strong> {data.user.panNumber || "-"}</p>
-          <p><strong>Aadhar:</strong> {data.user.aadharNumber || "-"}</p>
-          <p><strong>Address:</strong> {data.user.address || "-"}</p>
-          <p><strong>Status:</strong> {data.user.isDeleted ? "Inactive" : "Active"}</p>
+        <div className="rounded-2xl bg-gray-50 p-5">
+          <p className="mb-2 text-sm text-gray-500">Name</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {data.user.name || "-"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-gray-50 p-5">
+          <p className="mb-2 text-sm text-gray-500">Email</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {data.user.email || "-"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-gray-50 p-5">
+          <p className="mb-2 text-sm text-gray-500">Phone</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {data.user.phone || "-"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-gray-50 p-5">
+          <p className="mb-2 text-sm text-gray-500">PAN</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {data.user.panNumber || "-"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-gray-50 p-5">
+          <p className="mb-2 text-sm text-gray-500">Aadhar</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {data.user.aadharNumber || "-"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-gray-50 p-5 md:col-span-2 xl:col-span-3">
+          <p className="mb-2 text-sm text-gray-500">Address</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {data.user.address || "-"}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section className="rounded-3xl bg-white p-6 shadow-sm">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">Loan History</h2>
+          <p className="mt-1 text-gray-500">
+            All loan records related to this customer.
+          </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4">Loan History</h2>
-
-        {data.loans.length === 0 ? (
-          <p className="text-gray-500">No loans found for this customer.</p>
-        ) : (
-          <table className="w-full text-left">
-            <thead className="border-b">
-              <tr>
-                <th className="py-3">Loan ID</th>
-                <th className="py-3">Loan Type</th>
-                <th className="py-3">Amount</th>
-                <th className="py-3">Status</th>
-                <th className="py-3">Created</th>
+      {data.loans.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
+          <h3 className="text-xl font-semibold text-gray-800">
+            No loans found
+          </h3>
+          <p className="mt-2 text-gray-500">
+            This customer does not have any loan records yet.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[900px] text-left">
+            <thead>
+              <tr className="border-b border-gray-100 text-sm text-gray-500">
+                <th className="pb-4 font-semibold">Loan ID</th>
+                <th className="pb-4 font-semibold">Loan Type</th>
+                <th className="pb-4 font-semibold">Amount</th>
+                <th className="pb-4 font-semibold">Status</th>
+                <th className="pb-4 font-semibold">Created</th>
               </tr>
             </thead>
+
             <tbody>
               {data.loans.map((loan) => (
-                <tr key={loan._id} className="border-b">
-                  <td className="py-3">{loan.loanId}</td>
-                  <td className="py-3">{loan.loanDetails?.loanType || "-"}</td>
-                  <td className="py-3">₹{loan.loanDetails?.amount || 0}</td>
-                  <td className="py-3 capitalize">{loan.status}</td>
-                  <td className="py-3">
+                <tr
+                  key={loan._id}
+                  className="border-b border-gray-50 transition hover:bg-gray-50"
+                >
+                  <td className="py-5 font-semibold text-gray-900">
+                    {loan.loanId}
+                  </td>
+
+                  <td className="py-5 text-gray-700">
+                    {loan.loanDetails?.loanType || "-"}
+                  </td>
+
+                  <td className="py-5 text-gray-800">
+                    ₹{loan.loanDetails?.amount || 0}
+                  </td>
+
+                  <td className="py-5">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        loan.status === "approved"
+                          ? "bg-green-100 text-green-700"
+                          : loan.status === "pending"
+                          ? "bg-blue-100 text-blue-700"
+                          : loan.status === "draft"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : loan.status === "rejected"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {loan.status}
+                    </span>
+                  </td>
+
+                  <td className="py-5 text-gray-700">
                     {new Date(loan.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
+        </div>
+      )}
+    </section>
+
+    {showEditModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl">
+          <div className="mb-6">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-indigo-600">
+              Edit Customer
+            </p>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Update Customer Details
+            </h2>
+            <p className="mt-2 text-gray-500">
+              Edit the customer information below and save your changes.
+            </p>
+          </div>
+
+          <form onSubmit={handleUpdateUser} className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <input
+                type="text"
+                placeholder="Name"
+                value={editForm.name}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, name: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                required
+              />
+
+              <input
+                type="email"
+                placeholder="Email"
+                value={editForm.email}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, email: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                required
+              />
+
+              <input
+                type="text"
+                placeholder="Phone"
+                value={editForm.phone}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, phone: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+
+              <input
+                type="text"
+                placeholder="PAN Number"
+                value={editForm.panNumber}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, panNumber: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+
+              <input
+                type="text"
+                placeholder="Aadhar Number"
+                value={editForm.aadharNumber}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, aadharNumber: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 md:col-span-2"
+              />
+
+              <textarea
+                placeholder="Address"
+                value={editForm.address}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, address: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 md:col-span-2"
+                rows={4}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="rounded-xl border border-gray-300 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="rounded-xl bg-indigo-600 px-5 py-2.5 font-medium text-white transition hover:bg-indigo-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-          {showEditModal && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                  <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-6">
-                      <h2 className="text-xl font-semibold mb-4">Edit Customer</h2>
+    )}
 
-                      <form onSubmit={handleUpdateUser} className="space-y-4">
-                          <input
-                              type="text"
-                              placeholder="Name"
-                              value={editForm.name}
-                              onChange={(e) =>
-                                  setEditForm({ ...editForm, name: e.target.value })
-                              }
-                              className="w-full border px-3 py-2 rounded-lg"
-                              required
-                          />
+    {showPasswordModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+          <div className="mb-6">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-yellow-600">
+              Password Reset
+            </p>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Password Reset Successful
+            </h2>
+            <p className="mt-2 text-gray-500">
+              Share this temporary password securely. It is shown only once.
+            </p>
+          </div>
 
-                          <input
-                              type="email"
-                              placeholder="Email"
-                              value={editForm.email}
-                              onChange={(e) =>
-                                  setEditForm({ ...editForm, email: e.target.value })
-                              }
-                              className="w-full border px-3 py-2 rounded-lg"
-                              required
-                          />
-
-                          <input
-                              type="text"
-                              placeholder="Phone"
-                              value={editForm.phone}
-                              onChange={(e) =>
-                                  setEditForm({ ...editForm, phone: e.target.value })
-                              }
-                              className="w-full border px-3 py-2 rounded-lg"
-                          />
-
-                          <input
-                              type="text"
-                              placeholder="PAN Number"
-                              value={editForm.panNumber}
-                              onChange={(e) =>
-                                  setEditForm({ ...editForm, panNumber: e.target.value })
-                              }
-                              className="w-full border px-3 py-2 rounded-lg"
-                          />
-
-                          <input
-                              type="text"
-                              placeholder="Aadhar Number"
-                              value={editForm.aadharNumber}
-                              onChange={(e) =>
-                                  setEditForm({ ...editForm, aadharNumber: e.target.value })
-                              }
-                              className="w-full border px-3 py-2 rounded-lg"
-                          />
-
-                          <textarea
-                              placeholder="Address"
-                              value={editForm.address}
-                              onChange={(e) =>
-                                  setEditForm({ ...editForm, address: e.target.value })
-                              }
-                              className="w-full border px-3 py-2 rounded-lg"
-                              rows={3}
-                          />
-
-                          <div className="flex justify-end gap-3 pt-2">
-                              <button
-                                  type="button"
-                                  onClick={() => setShowEditModal(false)}
-                                  className="px-4 py-2 border rounded-lg"
-                              >
-                                  Cancel
-                              </button>
-
-                              <button
-                                  type="submit"
-                                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-                              >
-                                  Save Changes
-                              </button>
-                          </div>
-                      </form>
-                  </div>
+          <div className="space-y-4">
+            <div>
+              <p className="mb-1 text-sm text-gray-500">Customer Name</p>
+              <div className="rounded-xl border border-gray-300 bg-gray-50 px-4 py-3">
+                {resetPasswordData.name}
               </div>
-          )}
-          {showPasswordModal && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
-      <h2 className="text-xl font-semibold mb-2 text-gray-900">
-        Password Reset Successful
-      </h2>
+            </div>
 
-      <p className="text-sm text-gray-500 mb-6">
-        Share this temporary password with the customer securely. It is shown only once.
-      </p>
+            <div>
+              <p className="mb-1 text-sm text-gray-500">Email</p>
+              <div className="rounded-xl border border-gray-300 bg-gray-50 px-4 py-3">
+                {resetPasswordData.email}
+              </div>
+            </div>
 
-      <div className="space-y-4">
-        <div>
-          <p className="text-sm text-gray-500 mb-1">Customer Name</p>
-          <div className="w-full border rounded-lg px-3 py-2 bg-gray-50">
-            {resetPasswordData.name}
+            <div>
+              <p className="mb-1 text-sm text-gray-500">
+                New Temporary Password
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={resetPasswordData.password}
+                  className="flex-1 rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3 font-medium text-gray-900 outline-none"
+                />
+                <button
+                  onClick={handleCopyPassword}
+                  className="rounded-xl bg-indigo-600 px-4 py-3 text-white transition hover:bg-indigo-700"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div>
-          <p className="text-sm text-gray-500 mb-1">Email</p>
-          <div className="w-full border rounded-lg px-3 py-2 bg-gray-50">
-            {resetPasswordData.email}
-          </div>
-        </div>
-
-        <div>
-          <p className="text-sm text-gray-500 mb-1">New Temporary Password</p>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              readOnly
-              value={resetPasswordData.password}
-              className="flex-1 border rounded-lg px-3 py-2 bg-yellow-50 font-medium text-gray-900"
-            />
+          <div className="mt-6 flex justify-end">
             <button
-              onClick={handleCopyPassword}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              onClick={() => {
+                setShowPasswordModal(false);
+                setResetPasswordData({
+                  name: "",
+                  email: "",
+                  password: "",
+                });
+              }}
+              className="rounded-xl border border-gray-300 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-50"
             >
-              Copy
+              Close
             </button>
           </div>
         </div>
       </div>
-
-      <div className="flex justify-end mt-6">
-        <button
-          onClick={() => {
-            setShowPasswordModal(false);
-            setResetPasswordData({
-              name: "",
-              email: "",
-              password: "",
-            });
-          }}
-          className="px-4 py-2 border rounded-lg hover:bg-gray-50"
-        >
-          Close
-        </button>
-      </div>
-    </div>
+    )}
   </div>
-)}
-    </div>
-  );
+);
 };
 
 export default AgentUserDetails;

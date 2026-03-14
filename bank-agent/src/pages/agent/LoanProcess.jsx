@@ -21,6 +21,7 @@ const LoanProcess = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loan, setLoan] = useState(null);
   const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
   console.log("Loan ID:", loanId);
@@ -150,119 +151,156 @@ if (!loan) {
 
 // ⬇️ Only now use loan
 const isEditable = ["draft", "pending"].includes(loan.status);
+const isReviewOnly = ["approved", "rejected"].includes(loan.status);
 
   return (
-    
-    <div className="max-w-5xl mx-auto">
-      <h1 className="text-3xl font-semibold mb-8">
-        Loan ID: {loanId}
-      </h1>
-      <span
-      className={`rounded-full px-3 py-1 text-sm ${
-        loan.status === "approved"
-          ? "bg-green-100 text-green-700"
-          : loan.status === "pending"
-          ? "bg-blue-100 text-blue-700"
-          : loan.status === "draft"
-          ? "bg-yellow-100 text-yellow-700"
-          : loan.status === "rejected"
-          ? "bg-red-100 text-red-700"
-          : "bg-gray-100 text-gray-700"
-        }`}
-      >
-        {loan.status?.toUpperCase()}
-      </span>
+  <div className="mx-auto max-w-6xl space-y-8">
+    <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-100">
+            Loan Workflow
+          </p>
+          <h1 className="text-3xl font-bold md:text-4xl">Loan ID: {loanId}</h1>
+          <p className="mt-3 max-w-2xl text-indigo-100">
+            Review, update, and manage this loan application through each stage
+            of the process.
+          </p>
+        </div>
 
-      {/* Step Indicator */}
-      <div className="flex mb-10">
-        {steps.map((step, index) => (
-          <div
-            key={index}
-            className={`flex-1 text-center py-2 border-b-4 ${
-              index === currentStep
-                ? "border-indigo-600 font-semibold"
-                : "border-gray-200 text-gray-400"
-            }`}
-          >
-            {step}
-          </div>
-        ))}
-      </div>
-
-      {/* Step Content */}
-      <div className="bg-white p-8 rounded-2xl shadow-md">
-        {currentStep === 0 && (
-          <LoanDetails
-            loan={loan}                    // ✅ pass full loan
-            data={loan.loanDetails}
-            isEditable={isEditable}
-            onSave={handleSave}
-          />
-        )}
-
-        {currentStep === 1 && (
-          <EmploymentDetails
-            data={loan.employmentDetails}
-            isEditable={isEditable}
-            onSave={handleSave}
-          />
-        )}
-
-        {currentStep === 2 && (
-          <KYCDetails
-            data={loan.kycDetails}
-            isEditable={isEditable}
-            onSave={handleSave}
-          />
-        )}
-
-        {currentStep === 3 && (
-  <div className="space-y-6">
-    <ReviewSubmit loanData={loan} isEditable={isEditable} />
-
-    {["draft", "pending"].includes(loan.status) && (
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={handleSubmitApplication}
-          className="rounded-lg bg-green-600 px-5 py-2 text-white hover:bg-green-700"
+        <div
+          className={`inline-flex w-fit rounded-2xl px-5 py-3 text-sm font-semibold shadow-sm ${
+            loan.status === "approved"
+              ? "bg-green-100 text-green-700"
+              : loan.status === "pending"
+              ? "bg-blue-100 text-blue-700"
+              : loan.status === "draft"
+              ? "bg-yellow-100 text-yellow-700"
+              : loan.status === "rejected"
+              ? "bg-red-100 text-red-700"
+              : "bg-white/20 text-white"
+          }`}
         >
-          Approve Loan
-        </button>
-
-        <button
-          onClick={handleReject}
-          className="rounded-lg bg-red-600 px-5 py-2 text-white hover:bg-red-700"
-        >
-          Reject Loan
-        </button>
-      </div>
-    )}
-  </div>
-)}
-
-        {/* Navigation */}
-        <div className="flex justify-between mt-8">
-          {currentStep > 0 && (
-            <button
-              onClick={prevStep}
-              className="px-4 py-2 border rounded-lg"
-            >
-              Back
-            </button>
-          )}
-
-          {currentStep < steps.length - 1 && (
-            <button
-              onClick={nextStep}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg"
-            >
-              Next
-            </button>
-          )}
+          {loan.status?.toUpperCase()}
         </div>
       </div>
-    </div>
-  );
+    </section>
+
+    {isReviewOnly ? (
+      <section className="rounded-3xl bg-white p-8 shadow-sm">
+        <ReviewSubmit loanData={loan} status={loan.status} />
+      </section>
+    ) : (
+      <>
+        <section className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Loan Journey
+            </h2>
+            <p className="mt-1 text-gray-500">
+              Complete each section before final approval or rejection.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {steps.map((step, index) => (
+              <div
+                key={index}
+                className={`rounded-2xl border px-4 py-4 text-center transition ${
+                  index === currentStep
+                    ? "border-indigo-600 bg-indigo-50 text-indigo-700 shadow-sm"
+                    : "border-gray-200 bg-gray-50 text-gray-500"
+                }`}
+              >
+                <p className="text-xs font-semibold uppercase tracking-widest">
+                  Step {index + 1}
+                </p>
+                <p className="mt-2 font-medium">{step}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-3xl bg-white p-8 shadow-sm">
+          {currentStep === 0 && (
+            <LoanDetails
+              loan={loan}
+              data={loan.loanDetails}
+              isEditable={isEditable}
+              onSave={handleSave}
+            />
+          )}
+
+          {currentStep === 1 && (
+            <EmploymentDetails
+              data={loan.employmentDetails}
+              isEditable={isEditable}
+              onSave={handleSave}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <KYCDetails
+              data={loan.kycDetails}
+              isEditable={isEditable}
+              onSave={handleSave}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <ReviewSubmit loanData={loan} status={loan.status} />
+
+              {["draft", "pending"].includes(loan.status) && (
+                <div className="flex flex-wrap gap-3 border-t border-gray-100 pt-6">
+                  <button
+                    onClick={handleSubmitApplication}
+                    className="rounded-2xl bg-green-600 px-6 py-3 font-medium text-white transition hover:bg-green-700"
+                  >
+                    Approve Loan
+                  </button>
+
+                  {loan.status === "pending" && (
+                    <button
+                      onClick={handleReject}
+                      className="rounded-2xl bg-red-600 px-6 py-3 font-medium text-white transition hover:bg-red-700"
+                    >
+                      Reject Loan
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="mt-8 flex justify-between border-t border-gray-100 pt-6">
+            <div>
+              {currentStep > 0 && (
+                <button
+                  onClick={prevStep}
+                  className="rounded-2xl border border-gray-300 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-50"
+                >
+                  Back
+                </button>
+              )}
+            </div>
+
+            <div>
+              {currentStep < steps.length - 1 && (
+                <button
+                  onClick={nextStep}
+                  className="rounded-2xl bg-indigo-600 px-6 py-2.5 font-medium text-white transition hover:bg-indigo-700"
+                >
+                  Next
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+      </>
+    )}
+  </div>
+);
 };
 
 export default LoanProcess;
