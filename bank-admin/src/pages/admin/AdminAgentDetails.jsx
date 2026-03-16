@@ -9,10 +9,12 @@ const AdminAgentDetails = () => {
   const [showModal, setShowModal] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
   const [loadingReset, setLoadingReset] = useState(false);
-  
 
   const [data, setData] = useState({
     totalUsers: 0,
+    totalLoans: 0,
+    approvedLoans: 0,
+    approvalRate: 0,
     users: [],
   });
 
@@ -29,8 +31,13 @@ const AdminAgentDetails = () => {
         );
 
         const result = await res.json();
+
         if (Array.isArray(result)) {
-          setData((prev) => ({ ...prev, users: result, totalUsers: result.length }));
+          setData((prev) => ({
+            ...prev,
+            users: result,
+            totalUsers: result.length,
+          }));
         } else {
           setData({
             totalUsers: result?.totalUsers || 0,
@@ -49,135 +56,197 @@ const AdminAgentDetails = () => {
   }, [id, token]);
 
   const handleResetPassword = async () => {
-  const confirmReset = window.confirm(
-    "Are you sure you want to reset this agent's password?"
-  );
-  if (!confirmReset) return;
-
-  try {
-    setLoadingReset(true);
-
-    const res = await fetch(
-      `http://localhost:5000/api/admin/agents/${id}/reset-password`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const confirmReset = window.confirm(
+      "Are you sure you want to reset this agent's password?"
     );
+    if (!confirmReset) return;
 
-    const result = await res.json();
+    try {
+      setLoadingReset(true);
 
-    setGeneratedPassword(result.newPassword);
-    setShowModal(true);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setLoadingReset(false);
-  }
-};
+      const res = await fetch(
+        `http://localhost:5000/api/admin/agents/${id}/reset-password`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await res.json();
+
+      setGeneratedPassword(result.newPassword);
+      setShowModal(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingReset(false);
+    }
+  };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-semibold">
-          Agent Details
-        </h1>
-
-        <button
-          onClick={handleResetPassword}
-          disabled={loadingReset}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
-        >
-          {loadingReset ? "Resetting..." : "Reset Password"}
-        </button>
-      </div>
-
-          <div className="grid grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-4 rounded-xl shadow">
-                  <p className="text-gray-500 text-sm">Users Registered</p>
-                  <p className="text-2xl font-bold">{data.totalUsers}</p>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl shadow">
-                  <p className="text-gray-500 text-sm">Total Loans</p>
-                  <p className="text-2xl font-bold">{data.totalLoans}</p>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl shadow">
-                  <p className="text-gray-500 text-sm">Approved Loans</p>
-                  <p className="text-2xl font-bold">{data.approvedLoans}</p>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl shadow">
-                  <p className="text-gray-500 text-sm">Approval Rate</p>
-                  <p className="text-2xl font-bold">{data.approvalRate}%</p>
-              </div>
+    <div className="space-y-8">
+      {/* Hero */}
+      <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-100">
+              Admin Agent Details
+            </p>
+            <h1 className="text-3xl font-bold md:text-4xl">Agent Details</h1>
+            <p className="mt-3 max-w-2xl text-indigo-100">
+              Review this agent’s customer activity, loan performance, and account
+              access from one place.
+            </p>
           </div>
 
-      <div className="bg-white shadow rounded-xl overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-4">User ID</th>
-              <th className="p-4">Name</th>
-              <th className="p-4">Email</th>
-              <th className="p-4">Loan Type</th>
-              <th className="p-4">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.isArray(data.users) && data.users.map((user) => (
-              <tr key={user._id} className="border-t">
-                <td className="p-4">{user.userId}</td>
-                <td className="p-4">{user.name}</td>
-                <td className="p-4">{user.email}</td>
-                <td className="p-4">{user.loanType}</td>
-                <td className="p-4">
-                  {user.isActive ? (
-                    <span className="text-green-600">Active</span>
-                  ) : (
-                    <span className="text-red-500">Inactive</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={handleResetPassword}
+              disabled={loadingReset}
+              className="rounded-xl bg-white px-5 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loadingReset ? "Resetting..." : "Reset Password"}
+            </button>
+          </div>
+        </div>
+      </section>
 
-        {data.users.length === 0 && (
-          <p className="p-6 text-gray-500 text-center">
-            No users registered by this agent
+      {/* Summary cards */}
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-500">Users Registered</p>
+          <h3 className="mt-2 text-4xl font-bold text-indigo-600">
+            {data.totalUsers}
+          </h3>
+          <p className="mt-2 text-sm text-gray-400">
+            Customers registered by this agent
           </p>
+        </div>
+
+        <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-500">Total Loans</p>
+          <h3 className="mt-2 text-4xl font-bold text-blue-600">
+            {data.totalLoans}
+          </h3>
+          <p className="mt-2 text-sm text-gray-400">
+            Overall submitted loan applications
+          </p>
+        </div>
+
+        <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-500">Approved Loans</p>
+          <h3 className="mt-2 text-4xl font-bold text-green-600">
+            {data.approvedLoans}
+          </h3>
+          <p className="mt-2 text-sm text-gray-400">
+            Successfully approved applications
+          </p>
+        </div>
+
+        <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-500">Approval Rate</p>
+          <h3 className="mt-2 text-4xl font-bold text-violet-600">
+            {data.approvalRate}%
+          </h3>
+          <p className="mt-2 text-sm text-gray-400">
+            Approval percentage for this agent
+          </p>
+        </div>
+      </section>
+
+      {/* Users table */}
+      <section className="rounded-3xl bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Registered Customers
+          </h2>
+          <p className="mt-1 text-gray-500">
+            Customers currently associated with this agent.
+          </p>
+        </div>
+
+        {data.users.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left">
+              <thead>
+                <tr className="border-b border-gray-100 text-sm text-gray-500">
+                  <th className="pb-4 font-medium">User ID</th>
+                  <th className="pb-4 font-medium">Name</th>
+                  <th className="pb-4 font-medium">Email</th>
+                  <th className="pb-4 font-medium">Loan Type</th>
+                  <th className="pb-4 font-medium">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {Array.isArray(data.users) &&
+                  data.users.map((user) => (
+                    <tr
+                      key={user._id}
+                      className="border-b border-gray-50 transition hover:bg-gray-50 last:border-b-0"
+                    >
+                      <td className="py-4 font-semibold text-gray-900">
+                        {user.userId}
+                      </td>
+
+                      <td className="py-4 font-medium text-gray-900">
+                        {user.name}
+                      </td>
+
+                      <td className="py-4 text-gray-700">{user.email}</td>
+
+                      <td className="py-4 text-gray-700">{user.loanType || "-"}</td>
+
+                      <td className="py-4">
+                        {user.isActive ? (
+                          <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                            Inactive
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
+            No users registered by this agent.
+          </div>
         )}
-      </div>
+      </section>
+
+      {/* Password reset modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl w-96 text-center">
-            <h2 className="text-lg font-semibold text-green-600 mb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 text-center shadow-2xl">
+            <h2 className="text-2xl font-semibold text-green-600">
               Password Reset Successful
             </h2>
 
-            <p className="text-sm text-gray-500 mb-2">
-              New Password:
-            </p>
+            <p className="mt-4 text-sm text-gray-500">New Password</p>
 
-            <div className="bg-gray-100 p-3 rounded-lg font-mono mb-4">
+            <div className="mt-3 rounded-2xl bg-gray-100 p-4 font-mono text-gray-900">
               {generatedPassword}
             </div>
 
             <button
               onClick={() => navigator.clipboard.writeText(generatedPassword)}
-              className="text-blue-600 underline mb-4 block"
+              className="mt-4 text-sm font-medium text-indigo-600 underline"
             >
               Copy Password
             </button>
 
             <button
               onClick={() => setShowModal(false)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full"
+              className="mt-6 w-full rounded-xl bg-indigo-600 py-3 font-medium text-white transition hover:bg-indigo-700"
             >
               Close
             </button>

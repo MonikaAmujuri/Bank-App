@@ -6,47 +6,69 @@ import Loan from "../models/Loan.js";
 export const getDashboardStats = async (req, res) => {
   try {
     const usersCount = await User.countDocuments({ role: "user" });
+
     const agentsCount = await User.countDocuments({
       role: "agent",
       isDeleted: false,
     });
-    const loansCount = await Loan.countDocuments();
+
+    const loansCount = await Loan.countDocuments({
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    });
+
+    const pendingLoans = await Loan.countDocuments({
+      status: "pending",
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    });
+
+    const draftLoans = await Loan.countDocuments({
+      status: "draft",
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    });
+
+    const approvedLoans = await Loan.countDocuments({
+      status: "approved",
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    });
+
     const homeLoans = await Loan.countDocuments({
       "loanDetails.loanType": "Home Loan",
-      isArchived: false,
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
     const personalLoans = await Loan.countDocuments({
       "loanDetails.loanType": "Personal Loan",
-      isArchived: false,
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
     const educationLoans = await Loan.countDocuments({
       "loanDetails.loanType": "Education Loan",
-      isArchived: false,
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
     const businessLoans = await Loan.countDocuments({
       "loanDetails.loanType": "Business Loan",
-      isArchived: false,
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
     const vehicleLoans = await Loan.countDocuments({
       "loanDetails.loanType": "Vehicle Loan",
-      isArchived: false,
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
     res.json({
       users: usersCount,
       agents: agentsCount,
       loans: loansCount,
-      homeLoans: homeLoans,
-      personalLoans: personalLoans,
-      educationLoans: educationLoans,
-      businessLoans: businessLoans,
-      vehicleLoans: vehicleLoans,
+      pendingLoans,
+      draftLoans,
+      approvedLoans,
+      homeLoans,
+      personalLoans,
+      educationLoans,
+      businessLoans,
+      vehicleLoans,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -54,7 +76,7 @@ export const getDashboardStats = async (req, res) => {
 };
 export const getAllLoans = async (req, res) => {
   try {
-    const { loanType, showArchived } = req.query;
+    const { loanType, showArchived, status } = req.query;
     const filter = {};
 
     if (showArchived === "true") {
@@ -67,13 +89,16 @@ export const getAllLoans = async (req, res) => {
       filter["loanDetails.loanType"] = loanType;
     }
 
+    if (status) {
+      filter.status = status;
+    }
+
     const loans = await Loan.find(filter)
       .populate("userObjectId", "name userId")
       .populate("agentId", "name")
       .sort({ loanId: 1 });
 
     res.status(200).json(loans);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

@@ -86,6 +86,25 @@ export const uploadPanCard = async (req, res) => {
 
     await user.save();
 
+    const latestEditableLoan = await Loan.findOne({
+      userObjectId: req.user._id,
+      status: { $in: ["draft", "pending"] },
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    }).sort({ createdAt: -1 });
+
+    if (latestEditableLoan) {
+      latestEditableLoan.kycDetails = {
+        ...latestEditableLoan.kycDetails,
+        panFile: req.file.path,
+        panFilePublicId: req.file.filename,
+        panNumber:
+          user.panNumber || latestEditableLoan.kycDetails?.panNumber || "",
+      };
+
+      latestEditableLoan.markModified("kycDetails");
+      await latestEditableLoan.save();
+    }
+
     res.status(200).json({
       message: "PAN card uploaded successfully",
       document: user.documents.panCard,
@@ -117,6 +136,25 @@ export const uploadAadharCard = async (req, res) => {
     };
 
     await user.save();
+
+    const latestEditableLoan = await Loan.findOne({
+      userObjectId: req.user._id,
+      status: { $in: ["draft", "pending"] },
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    }).sort({ createdAt: -1 });
+
+    if (latestEditableLoan) {
+      latestEditableLoan.kycDetails = {
+        ...latestEditableLoan.kycDetails,
+        aadhaarFile: req.file.path,
+        aadhaarFilePublicId: req.file.filename,
+        aadharNumber:
+          user.aadharNumber || latestEditableLoan.kycDetails?.aadharNumber || "",
+      };
+
+      latestEditableLoan.markModified("kycDetails");
+      await latestEditableLoan.save();
+    }
 
     res.status(200).json({
       message: "Aadhar card uploaded successfully",

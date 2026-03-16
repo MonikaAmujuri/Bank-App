@@ -67,14 +67,19 @@ const UserHome = () => {
       <UserNavbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-blue-50 via-white to-cyan-50">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 px-6 py-16 md:flex-row md:py-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+        <div className="absolute inset-0 opacity-60">
+          <div className="absolute left-0 top-10 h-56 w-56 rounded-full bg-blue-100 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-cyan-100 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-between gap-12 px-6 py-16 md:flex-row md:py-20 lg:py-24">
           <div className="max-w-2xl">
-            <p className="mb-3 inline-block rounded-full bg-blue-100 px-4 py-1 text-sm font-semibold text-blue-700">
+            <p className="mb-4 inline-flex rounded-full bg-blue-100 px-4 py-1.5 text-sm font-semibold text-blue-700 shadow-sm">
               Customer Banking Portal
             </p>
 
-            <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-900 md:text-5xl">
+            <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-900 md:text-5xl lg:text-6xl">
               Welcome back to your secure banking space
             </h1>
 
@@ -86,45 +91,83 @@ const UserHome = () => {
             <div className="flex flex-wrap gap-4">
               <Link
                 to="/user/apply-loan"
-                className="rounded-xl bg-blue-900 px-6 py-3 font-medium text-white transition hover:bg-blue-800"
+                className="rounded-2xl bg-blue-900 px-6 py-3 font-medium text-white shadow-lg shadow-blue-100 transition hover:-translate-y-0.5 hover:bg-blue-800"
               >
                 Apply Loan
               </Link>
               <Link
                 to="/user/my-applications"
-                className="rounded-xl border border-blue-900 px-6 py-3 font-medium text-blue-900 transition hover:bg-blue-50"
+                className="rounded-2xl border border-blue-900 bg-white px-6 py-3 font-medium text-blue-900 transition hover:bg-blue-50"
               >
                 My Applications
               </Link>
             </div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-blue-100 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
+                <p className="text-2xl font-bold text-blue-900">Fast</p>
+                <p className="mt-1 text-sm text-gray-500">Application process</p>
+              </div>
+              <div className="rounded-2xl border border-blue-100 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
+                <p className="text-2xl font-bold text-blue-900">Secure</p>
+                <p className="mt-1 text-sm text-gray-500">Document handling</p>
+              </div>
+              <div className="rounded-2xl border border-blue-100 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
+                <p className="text-2xl font-bold text-blue-900">Easy</p>
+                <p className="mt-1 text-sm text-gray-500">Status tracking</p>
+              </div>
+            </div>
           </div>
 
-          <div className="w-full max-w-lg">
-            <div className="rounded-3xl bg-white p-8 shadow-xl ring-1 ring-gray-100">
-              <h3 className="mb-5 text-2xl font-bold text-gray-900">
-                Banking Services at a Glance
-              </h3>
+          <div className="w-full max-w-xl">
+            <div className="rounded-[32px] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.10)] ring-1 ring-gray-100">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Banking Services</p>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    At a Glance
+                  </h3>
+                </div>
+                <div className="rounded-2xl bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800">
+                  Secure
+                </div>
+              </div>
 
               <div className="space-y-4">
-                <div className="rounded-2xl bg-blue-50 p-4">
+                <div className="rounded-3xl bg-blue-50 p-5">
                   <p className="text-sm text-gray-500">Loan Applications</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="mt-1 text-lg font-semibold text-gray-900">
                     Apply and track with ease
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-gray-50 p-4">
+                <div className="rounded-3xl bg-gray-50 p-5">
                   <p className="text-sm text-gray-500">Document Management</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="mt-1 text-lg font-semibold text-gray-900">
                     Upload PAN and Aadhaar securely
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-cyan-50 p-4">
+                <div className="rounded-3xl bg-cyan-50 p-5">
                   <p className="text-sm text-gray-500">Customer Support</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="mt-1 text-lg font-semibold text-gray-900">
                     Get help whenever you need it
                   </p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-3 gap-4">
+                <div className="rounded-2xl bg-gray-50 p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-900">24/7</p>
+                  <p className="mt-1 text-xs text-gray-500">Support</p>
+                </div>
+                <div className="rounded-2xl bg-gray-50 p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-900">Safe</p>
+                  <p className="mt-1 text-xs text-gray-500">Process</p>
+                </div>
+                <div className="rounded-2xl bg-gray-50 p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-900">Easy</p>
+                  <p className="mt-1 text-xs text-gray-500">Access</p>
                 </div>
               </div>
             </div>
@@ -133,9 +176,9 @@ const UserHome = () => {
       </section>
 
       {/* Services */}
-      <section className="py-16">
+      <section className="py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-10">
+          <div className="mb-12">
             <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-blue-700">
               Our Services
             </p>
@@ -152,9 +195,9 @@ const UserHome = () => {
             {services.map((item, index) => (
               <div
                 key={index}
-                className="rounded-3xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                className="group rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-gray-100 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-lg font-bold text-blue-800">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-lg font-bold text-blue-800">
                   {index + 1}
                 </div>
 
@@ -162,7 +205,9 @@ const UserHome = () => {
                   {item.title}
                 </h3>
 
-                <p className="mb-6 text-gray-600">{item.description}</p>
+                <p className="mb-6 min-h-[72px] text-sm leading-7 text-gray-600">
+                  {item.description}
+                </p>
 
                 <Link
                   to={item.link}
@@ -177,9 +222,9 @@ const UserHome = () => {
       </section>
 
       {/* Loan Options */}
-      <section className="bg-white py-16">
+      <section className="bg-white py-16 lg:py-20">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-10 text-center">
+          <div className="mb-12 text-center">
             <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-blue-700">
               Loan Services
             </p>
@@ -196,17 +241,19 @@ const UserHome = () => {
             {loanOptions.map((loan, index) => (
               <div
                 key={index}
-                className="rounded-3xl border border-gray-200 bg-gray-50 p-6 transition hover:border-blue-200 hover:bg-white hover:shadow-md"
+                className="rounded-[28px] border border-gray-200 bg-gray-50 p-6 transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:shadow-md"
               >
                 <h3 className="mb-3 text-xl font-semibold text-gray-900">
                   {loan.title}
                 </h3>
-                <p className="mb-5 text-gray-600">{loan.text}</p>
+                <p className="mb-5 text-sm leading-7 text-gray-600">
+                  {loan.text}
+                </p>
                 <Link
-                    to={loan.link}
-                    className="text-sm font-semibold text-blue-700 hover:underline"
+                  to={loan.link}
+                  className="text-sm font-semibold text-blue-700 hover:underline"
                 >
-                    Explore Loan
+                  Explore Loan
                 </Link>
               </div>
             ))}
@@ -215,13 +262,13 @@ const UserHome = () => {
       </section>
 
       {/* Documents + Applications */}
-      <section className="py-16">
+      <section className="py-16 lg:py-20">
         <div className="mx-auto grid max-w-7xl gap-6 px-6 lg:grid-cols-2">
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="rounded-[30px] bg-white p-7 shadow-sm ring-1 ring-gray-100">
             <h3 className="mb-3 text-2xl font-semibold text-blue-900">
               Manage Your Documents
             </h3>
-            <p className="mb-6 text-gray-600">
+            <p className="mb-6 leading-7 text-gray-600">
               Keep your PAN card and Aadhaar card updated for a smoother loan
               application experience.
             </p>
@@ -233,11 +280,11 @@ const UserHome = () => {
             </Link>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-sm">
+          <div className="rounded-[30px] bg-white p-7 shadow-sm ring-1 ring-gray-100">
             <h3 className="mb-3 text-2xl font-semibold text-blue-900">
               Check Your Applications
             </h3>
-            <p className="mb-6 text-gray-600">
+            <p className="mb-6 leading-7 text-gray-600">
               View all your submitted and agent-created loan applications and
               follow their progress.
             </p>
@@ -252,30 +299,41 @@ const UserHome = () => {
       </section>
 
       {/* Help Section */}
-      <section className="pb-16">
+      <section className="pb-16 lg:pb-20">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="rounded-3xl bg-blue-900 px-8 py-12 text-white shadow-xl md:px-12">
-            <h2 className="mb-4 text-3xl font-bold">Need help with your banking services?</h2>
-            <p className="mb-6 max-w-2xl text-blue-100">
+          <div className="rounded-[32px] bg-blue-900 px-8 py-12 text-white shadow-[0_20px_50px_rgba(30,64,175,0.20)] md:px-12">
+            <h2 className="mb-4 text-3xl font-bold">
+              Need help with your banking services?
+            </h2>
+            <p className="mb-8 max-w-2xl leading-8 text-blue-100">
               Our support team is here to assist you with your loan applications,
               documents, and account-related queries.
             </p>
 
             <div className="mb-8 grid gap-4 text-blue-100 md:grid-cols-3">
-              <p>
-                <span className="font-semibold text-white">Email:</span> support@mybank.com
-              </p>
-              <p>
-                <span className="font-semibold text-white">Phone:</span> +91 98765 43210
-              </p>
-              <p>
-                <span className="font-semibold text-white">Hours:</span> Mon - Sat, 9 AM - 6 PM
-              </p>
+              <div className="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+                <p>
+                  <span className="font-semibold text-white">Email:</span>{" "}
+                  support@mybank.com
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+                <p>
+                  <span className="font-semibold text-white">Phone:</span> +91
+                  98765 43210
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/10 px-4 py-4 backdrop-blur-sm">
+                <p>
+                  <span className="font-semibold text-white">Hours:</span> Mon -
+                  Sat, 9 AM - 6 PM
+                </p>
+              </div>
             </div>
 
             <Link
               to="/user/my-applications"
-              className="inline-block rounded-xl bg-white px-6 py-3 font-semibold text-blue-900 transition hover:bg-blue-50"
+              className="inline-block rounded-2xl bg-white px-6 py-3 font-semibold text-blue-900 transition hover:bg-blue-50"
             >
               Continue Banking
             </Link>

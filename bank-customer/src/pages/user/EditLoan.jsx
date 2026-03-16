@@ -9,7 +9,6 @@ const EditLoan = () => {
   const [formData, setFormData] = useState({
   loanType: "",
   loanAmount: "",
-  companyId: "",
   companyName: "",
   location: "",
   salary: "",
@@ -58,7 +57,6 @@ const EditLoan = () => {
         setFormData({
           loanType: data.loanDetails?.loanType || "",
           loanAmount: data.loanDetails?.amount || "",
-          companyId: data.employmentDetails?.companyId || "",
           companyName: data.employmentDetails?.companyName || "",
           location: data.employmentDetails?.location || "",
           salary: data.employmentDetails?.salary || "",
@@ -66,6 +64,11 @@ const EditLoan = () => {
           panNumber: data.kycDetails?.panNumber || "",
           aadhaarNumber: data.kycDetails?.aadharNumber || "",
           address: data.kycDetails?.address || "",
+          panFile: null,
+          aadhaarFile: null,
+          bankStatements: [],
+          itReturns: [],
+          payslips: [],
         });
       } catch (error) {
         console.error(error);
@@ -107,7 +110,6 @@ const EditLoan = () => {
 
     data.append("loanType", formData.loanType);
     data.append("loanAmount", formData.loanAmount);
-    data.append("companyId", formData.companyId);
     data.append("companyName", formData.companyName);
     data.append("location", formData.location);
     data.append("salary", formData.salary);
@@ -124,15 +126,15 @@ const EditLoan = () => {
       data.append("aadhaarFile", formData.aadhaarFile);
     }
 
-    formData.bankStatements.forEach((file) => {
+    (formData.bankStatements || []).forEach((file) => {
       data.append("bankStatements", file);
     });
 
-    formData.itReturns.forEach((file) => {
+    (formData.itReturns || []).forEach((file) => {
       data.append("itReturns", file);
     });
 
-    formData.payslips.forEach((file) => {
+    (formData.payslips || []).forEach((file) => {
       data.append("payslips", file);
     });
 
@@ -235,19 +237,6 @@ const EditLoan = () => {
                   onChange={handleChange}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   required
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Company ID
-                </label>
-                <input
-                  type="text"
-                  name="companyId"
-                  value={formData.companyId}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
 

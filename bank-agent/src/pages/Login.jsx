@@ -2,10 +2,7 @@ import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-} from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../firebase";
 
 const Login = () => {
@@ -151,90 +148,169 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <form
-        onSubmit={handleContinue}
-        className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-semibold mb-2 text-center">Login</h2>
-        <p className="text-sm text-gray-500 text-center mb-6">
-          Use email with password or phone number with OTP
-        </p>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:grid-cols-2">
+        {/* Left Panel */}
+        <div className="hidden flex-col justify-between bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 p-10 text-white md:flex">
+          <div>
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-2xl font-bold shadow-md backdrop-blur-sm">
+                M
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">MyBank Agent</h1>
+                <p className="text-sm text-indigo-100">Loan Operations</p>
+              </div>
+            </div>
 
-        {error && (
-          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
-        )}
-
-        {message && (
-          <p className="text-green-600 text-sm mb-4 text-center">{message}</p>
-        )}
-
-        <input
-          type="text"
-          placeholder="Email or phone number"
-          className="w-full mb-4 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-          value={identifier}
-          onChange={(e) => {
-            setIdentifier(e.target.value);
-            setPassword("");
-            setOtp("");
-            setConfirmationResult(null);
-            setError("");
-            setMessage("");
-          }}
-          required
-        />
-
-        {isEmail(identifier) && (
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full mb-4 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        )}
-
-        {!confirmationResult && (
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-60"
-          >
-            {loading
-              ? "Please wait..."
-              : isEmail(identifier)
-              ? "Login"
-              : isPhone(identifier)
-              ? "Send OTP"
-              : "Continue"}
-          </button>
-        )}
-
-        {confirmationResult && (
-          <div className="mt-4">
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              className="w-full mb-4 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-green-500"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-            />
-
-            <button
-              type="button"
-              onClick={handleOtpVerifyClick}
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:opacity-60"
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
-            </button>
+            <div className="mt-12">
+              <p className="mb-3 text-sm font-medium uppercase tracking-widest text-indigo-100">
+                Welcome Back
+              </p>
+              <h2 className="text-4xl font-bold leading-tight">
+                Sign in to manage your assigned customers and loans
+              </h2>
+              <p className="mt-4 max-w-md text-indigo-100">
+                Access your loan pipeline, review pending applications, and
+                manage customer activity from one premium workspace.
+              </p>
+            </div>
           </div>
-        )}
 
-        <div id="recaptcha-container"></div>
-      </form>
+          <div className="grid gap-4">
+            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <p className="text-sm font-medium text-indigo-100">
+                Secure Access
+              </p>
+              <p className="mt-1 text-sm text-white/90">
+                Login with email and password or phone number with OTP.
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <p className="text-sm font-medium text-indigo-100">
+                Agent Workspace
+              </p>
+              <p className="mt-1 text-sm text-white/90">
+                Track assigned loans, review applications, and manage customers
+                efficiently.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Form Panel */}
+        <div className="p-8 sm:p-10 md:p-12">
+          <div className="mb-8 text-center md:text-left">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 text-2xl font-bold text-white shadow-md md:hidden">
+              M
+            </div>
+
+            <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-600">
+              Agent Login
+            </p>
+            <h2 className="text-3xl font-bold text-gray-900">Sign In</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Use email with password or phone number with OTP
+            </p>
+          </div>
+
+          <form onSubmit={handleContinue} className="space-y-5">
+            {error && (
+              <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            {message && (
+              <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
+                {message}
+              </div>
+            )}
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-600">
+                Email or Phone Number
+              </label>
+              <input
+                type="text"
+                placeholder="Enter email or phone number"
+                className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-indigo-500"
+                value={identifier}
+                onChange={(e) => {
+                  setIdentifier(e.target.value);
+                  setPassword("");
+                  setOtp("");
+                  setConfirmationResult(null);
+                  setError("");
+                  setMessage("");
+                }}
+                required
+              />
+            </div>
+
+            {isEmail(identifier) && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-600">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter password"
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-indigo-500"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            {!confirmationResult && (
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 py-3.5 font-medium text-white transition hover:opacity-95 disabled:opacity-60"
+              >
+                {loading
+                  ? "Please wait..."
+                  : isEmail(identifier)
+                  ? "Login"
+                  : isPhone(identifier)
+                  ? "Send OTP"
+                  : "Continue"}
+              </button>
+            )}
+
+            {confirmationResult && (
+              <div className="space-y-4 rounded-3xl border border-gray-100 bg-gray-50 p-5">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-600">
+                    OTP
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter OTP"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 outline-none transition focus:border-green-500"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleOtpVerifyClick}
+                  disabled={loading}
+                  className="w-full rounded-2xl bg-green-600 py-3.5 font-medium text-white transition hover:bg-green-700 disabled:opacity-60"
+                >
+                  {loading ? "Verifying..." : "Verify OTP"}
+                </button>
+              </div>
+            )}
+
+            <div id="recaptcha-container"></div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };
