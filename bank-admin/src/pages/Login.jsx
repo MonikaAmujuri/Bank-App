@@ -43,31 +43,38 @@ const Login = () => {
   };
 
   const handleEmailLogin = async () => {
-    if (!password) {
-      setError("Please enter password");
-      return;
-    }
+  if (!password) {
+    setError("Please enter password");
+    return;
+  }
 
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: identifier.toLowerCase().trim(),
-        password,
-      }),
-    });
+  const res = await fetch("http://localhost:5000/api/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: identifier.toLowerCase().trim(),
+      password,
+    }),
+  });
 
-    const data = await res.json();
+  const text = await res.text();
+  let data;
 
-    if (!res.ok) {
-      throw new Error(data.message || "Login failed");
-    }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`Request failed with status ${res.status}`);
+  }
 
-    login(data.user, data.token);
-    redirectByRole(data.user);
-  };
+  if (!res.ok) {
+    throw new Error(data.message || "Login failed");
+  }
+
+  login(data.user, data.token);
+  redirectByRole(data.user);
+};
 
   const handleSendOtp = async () => {
     setupRecaptcha();
