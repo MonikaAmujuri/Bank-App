@@ -2,6 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 const AgentLoans = () => {
   const { token } = useAuth();
@@ -9,84 +10,50 @@ const AgentLoans = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [showArchived, setShowArchived] = useState(false);
-  const [assigningId, setAssigningId] = useState(null);
   const statusFilter = searchParams.get("status");
   const typeFilter = searchParams.get("type");
+  const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
-    if (token) {
-      fetchLoans();
-    }
-  }, [token, statusFilter, typeFilter, showArchived]);
+  if (token) {
+    fetchLoans();
+  }
+}, [token, statusFilter, typeFilter]);
 
   const fetchLoans = async () => {
-    try {
-      const params = new URLSearchParams({
-        archived: String(showArchived),
-      });
+  try {
+    const params = new URLSearchParams({
+      all: "true",
+    });
 
-      if (statusFilter) params.append("status", statusFilter);
-      if (typeFilter) params.append("type", typeFilter);
+    if (statusFilter) params.append("status", statusFilter);
+    if (typeFilter) params.append("type", typeFilter);
 
-      const res = await fetch(
-        `http://localhost:5000/api/agent/loans?${params.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setLoans([]);
-        setErrorMessage(data.message || "Failed to load loans");
-        return;
+    const res = await fetch(
+      `http://localhost:5000/api/agent/loans?${params.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      setErrorMessage("");
-      setLoans(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
+    const data = await res.json();
+
+    if (!res.ok) {
       setLoans([]);
-      setErrorMessage("Failed to load loans");
+      setErrorMessage(data.message || "Failed to load loans");
+      return;
     }
-  };
 
-  const assignLoan = async (loanId) => {
-    setAssigningId(loanId);
-
-    try {
-      const res = await fetch(
-        'http://localhost:5000/api/agent/loans/${loanId}/assign',
-        {
-          method: "POST",
-          headers: {
-            Authorization: 'Bearer ${token}',
-          },
-        }
-      );
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error('Request failed with status ${res.status}');
-      }
-      if(!res.ok) {
-        alert(data.message || "Failed to assign loan");
-      }
-      
-      fetchLoans();
-     } catch (error) {
-      console.error(error);
-      alert(error.message || "Something went wrong");
-     } finally {
-      setAssigningId("");
-     }
-  };
+    setErrorMessage("");
+    setLoans(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error(error);
+    setLoans([]);
+    setErrorMessage("Failed to load loans");
+  }
+};
 
   const filteredLoans = loans.filter((loan) => {
     const matchesStatus = statusFilter
@@ -219,6 +186,20 @@ const AgentLoans = () => {
     }
   };
 
+  const statusChartData = [
+  { name: "Draft Loans", value: loans.filter((loan) => loan.status === "draft").length },
+  { name: "Pending Loans", value: loans.filter((loan) => loan.status === "pending").length },
+  { name: "Approved Loans", value: loans.filter((loan) => loan.status === "approved").length },
+  { name: "Rejected Loans", value: loans.filter((loan) => loan.status === "rejected").length },
+].filter((item) => item.value > 0);
+
+const statusChartColors = ["#F59E0B", "#0EA5E9", "#22C55E", "#EF4444"];
+
+const totalStatusValue = statusChartData.reduce((sum, item) => sum + item.value, 0);
+
+const renderPercentLabel = ({ percent }) =>
+  `${(percent * 100).toFixed(0)}%`;
+
   const formatLoanType = (loanType) => {
     if (!loanType) return "-";
     return loanType.charAt(0).toUpperCase() + loanType.slice(1);
@@ -262,12 +243,28 @@ const AgentLoans = () => {
       </div>
     </section>
 
-    <section className="grid grid-cols-1 gap-6 md:grid-cols-4">
+    <section>
+  <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 className="text-2xl font-semibold text-gray-900">Loan Summary</h2>
+      <p className="mt-1 text-gray-500">
+        Overview of your assigned loans and current workflow status.
+      </p>
+    </div>
+
+    <button
+      onClick={() => setShowChart(!showChart)}
+      className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+    >
+      {showChart ? "Show Cards" : "Show Status Chart"}
+    </button>
+  </div>
+
+  {!showChart ? (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
       <div className="rounded-3xl bg-white p-6 shadow-sm">
         <p className="text-sm font-medium text-gray-500">Visible Loans</p>
-        <h2 className="mt-3 text-4xl font-bold text-indigo-600">
-          {filteredLoans.length}
-        </h2>
+        <h3 className="mt-2 text-4xl font-bold text-indigo-600">{loans.length}</h3>
         <p className="mt-2 text-sm text-gray-400">
           Loans in the current filtered view
         </p>
@@ -275,9 +272,9 @@ const AgentLoans = () => {
 
       <div className="rounded-3xl bg-white p-6 shadow-sm">
         <p className="text-sm font-medium text-gray-500">Draft Loans</p>
-        <h2 className="mt-3 text-4xl font-bold text-amber-500">
-          {filteredLoans.filter((loan) => loan.status === "draft").length}
-        </h2>
+        <h3 className="mt-2 text-4xl font-bold text-amber-500">
+          {loans.filter((loan) => loan.status === "draft").length}
+        </h3>
         <p className="mt-2 text-sm text-gray-400">
           Incomplete or editable loans
         </p>
@@ -285,9 +282,9 @@ const AgentLoans = () => {
 
       <div className="rounded-3xl bg-white p-6 shadow-sm">
         <p className="text-sm font-medium text-gray-500">Pending Loans</p>
-        <h2 className="mt-3 text-4xl font-bold text-blue-600">
-          {filteredLoans.filter((loan) => loan.status === "pending").length}
-        </h2>
+        <h3 className="mt-2 text-4xl font-bold text-sky-600">
+          {loans.filter((loan) => loan.status === "pending").length}
+        </h3>
         <p className="mt-2 text-sm text-gray-400">
           Waiting for final review or approval
         </p>
@@ -295,59 +292,111 @@ const AgentLoans = () => {
 
       <div className="rounded-3xl bg-white p-6 shadow-sm">
         <p className="text-sm font-medium text-gray-500">Approved Loans</p>
-        <h2 className="mt-3 text-4xl font-bold text-green-600">
-          {filteredLoans.filter((loan) => loan.status === "approved").length}
-        </h2>
+        <h3 className="mt-2 text-4xl font-bold text-green-600">
+          {loans.filter((loan) => loan.status === "approved").length}
+        </h3>
         <p className="mt-2 text-sm text-gray-400">
           Successfully approved records
         </p>
       </div>
-    </section>
+    </div>
+  ) : (
+    <div className="rounded-3xl bg-white p-6 shadow-sm">
+      <div className="mb-6">
+        <h3 className="text-2xl font-semibold text-gray-900">
+          Loan Status Distribution
+        </h3>
+        <p className="mt-1 text-gray-500">
+          Percentage breakdown of your current loan workflow.
+        </p>
+      </div>
+
+      {statusChartData.length > 0 ? (
+        <div className="grid gap-8 xl:grid-cols-2 xl:items-center">
+          <div className="h-[360px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusChartData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={120}
+                  dataKey="value"
+                  label={renderPercentLabel}
+                  labelLine={false}
+                >
+                  {statusChartData.map((entry, index) => (
+                    <Cell
+                      key={`status-cell-${index}`}
+                      fill={statusChartColors[index % statusChartColors.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value, name) => [value, name]} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="space-y-4">
+            {statusChartData.map((item, index) => {
+              const percent = totalStatusValue
+                ? ((item.value / totalStatusValue) * 100).toFixed(1)
+                : 0;
+
+              return (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between rounded-2xl bg-gray-50 px-5 py-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-4 w-4 rounded-full"
+                      style={{
+                        backgroundColor:
+                          statusChartColors[index % statusChartColors.length],
+                      }}
+                    />
+                    <span className="font-medium text-gray-700">{item.name}</span>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">{item.value}</p>
+                    <p className="text-sm text-gray-500">{percent}%</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
+          No loan status data available.
+        </div>
+      )}
+    </div>
+  )}
+</section>
 
     <section className="rounded-3xl bg-white p-6 shadow-sm">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Loan Records
-          </h2>
-          <p className="mt-1 text-gray-500">
-            Review customer loan details and continue the workflow from here.
-          </p>
-        </div>
+  <div>
+    <h2 className="text-2xl font-semibold text-gray-900">
+      Loan Records
+    </h2>
+    <p className="mt-1 text-gray-500">
+      Review customer loan details and continue the workflow from here.
+    </p>
+  </div>
 
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setShowArchived(false)}
-            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
-              !showArchived
-                ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Active Loans
-          </button>
-
-          <button
-            onClick={() => setShowArchived(true)}
-            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
-              showArchived
-                ? "bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Inactive Loans
-          </button>
-
-          {(statusFilter || typeFilter) && (
-            <button
-              onClick={() => navigate("/agent/loans")}
-              className="rounded-2xl bg-gray-100 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-200"
-            >
-              Clear Filters
-            </button>
-          )}
-        </div>
-      </div>
+  {(statusFilter || typeFilter) && (
+    <button
+      onClick={() => navigate("/agent/loans")}
+      className="w-fit rounded-2xl bg-gray-100 px-5 py-2.5 font-medium text-gray-700 transition hover:bg-gray-200"
+    >
+      Clear Filters
+    </button>
+  )}
+</div>
 
       <div className="mb-5 flex items-center justify-between">
         <p className="text-sm text-gray-500">
@@ -431,40 +480,36 @@ const AgentLoans = () => {
 
                   <td className="py-5">
                     <div className="flex flex-wrap items-center gap-2">
-                      {!showArchived && (
-                        <>
-                          <button
-                            onClick={() => handleView(loan.loanId)}
-                            disabled={loan.userObjectId?.isDeleted}
-                            className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                              loan.userObjectId?.isDeleted
-                                ? "cursor-not-allowed bg-gray-200 text-gray-400"
-                                : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
-                            }`}
-                          >
-                            View
-                          </button>
-
-                          {loan.status === "draft" && (
-                            <button
-                              onClick={() => handleDelete(loan.loanId)}
-                              className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </>
-                      )}
-
-                      {showArchived && (
-                        <button
-                          onClick={() => handleRestore(loan.loanId)}
-                          className="rounded-xl bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100"
-                        >
-                          Restore
-                        </button>
-                      )}
-                    </div>
+                      <button
+                      onClick={() => handleView(loan.loanId)}
+                      disabled={loan.userObjectId?.isDeleted}
+                      className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                        loan.userObjectId?.isDeleted
+                        ? "cursor-not-allowed bg-gray-200 text-gray-400"
+                        : "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
+                      }`}
+                      >
+                        View
+                      </button>
+                      
+                    {loan.status === "draft" && !loan.isArchived && (
+                      <button
+                      onClick={() => handleDelete(loan.loanId)}
+                      className="rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                    )}
+                    
+                    {loan.isArchived && (
+                      <button
+                      onClick={() => handleRestore(loan.loanId)}
+                      className="rounded-xl bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition hover:bg-green-100"
+                      >
+                        Restore
+                      </button>
+                    )}
+                  </div>
                   </td>
                 </tr>
               ))}

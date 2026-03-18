@@ -2,6 +2,8 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+
 
 const AgentUsers = () => {
   const { token } = useAuth();
@@ -15,21 +17,16 @@ const [panNumber, setPanNumber] = useState("");
 const [aadharNumber, setAadharNumber] = useState("");
 const [address, setAddress] = useState("");
 const [generatedPassword, setGeneratedPassword] = useState("");
-const [showDeleted, setShowDeleted] = useState(false);
-
+const [showChart, setShowChart] = useState(false);
 
 useEffect(() => {
   if (!token) return;
   fetchUsers();
-}, [token, showDeleted]);
+}, [token]);
 
 const fetchUsers = async () => {
   try {
-    const url = `http://localhost:5000/api/agent/users${
-      showDeleted ? "?deleted=true" : ""
-    }`;
-
-    const res = await fetch(url, {
+    const res = await fetch("http://localhost:5000/api/agent/users?all=true", {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -42,11 +39,11 @@ const fetchUsers = async () => {
     } else {
       setUsers([]);
     }
-
   } catch (err) {
     console.error(err);
   }
 };
+
   const generatePassword = () => {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -183,6 +180,32 @@ const handleStartLoan = async (userId) => {
   }
 };
 
+const activeUsers = users.filter((user) => !user.isDeleted && user.isActive).length;
+const inactiveUsers = users.filter((user) => user.isDeleted || !user.isActive).length;
+
+const activeCustomers = users.filter(
+  (user) => !user.isDeleted && user.isActive
+).length;
+
+const inactiveCustomers = users.filter(
+  (user) => user.isDeleted || !user.isActive
+).length;
+
+const customerChartData = [
+  { name: "Active Customers", value: activeCustomers },
+  { name: "Inactive Customers", value: inactiveCustomers },
+].filter((item) => item.value > 0);
+
+const customerChartColors = ["#22C55E", "#EF4444"];
+
+const totalCustomerChartValue = customerChartData.reduce(
+  (sum, item) => sum + item.value,
+  0
+);
+
+const renderPercentLabel = ({ percent }) =>
+  `${(percent * 100).toFixed(0)}%`;
+
   return (
   <div className="space-y-8">
     <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
@@ -207,41 +230,145 @@ const handleStartLoan = async (userId) => {
       </div>
     </section>
 
-    
+    <section>
+  <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 className="text-2xl font-semibold text-gray-900">
+        Customer Summary
+      </h2>
+      <p className="mt-1 text-gray-500">
+        Overview of assigned customer account status.
+      </p>
+    </div>
+
+    <button
+      onClick={() => setShowChart(!showChart)}
+      className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+    >
+      {showChart ? "Show Cards" : "Show Chart"}
+    </button>
+  </div>
+
+  {!showChart ? (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Total Customers</p>
+        <h3 className="mt-2 text-4xl font-bold text-indigo-600">
+          {users.length}
+        </h3>
+        <p className="mt-2 text-sm text-gray-400">
+          All registered customer accounts
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Active Customers</p>
+        <h3 className="mt-2 text-4xl font-bold text-green-600">
+          {activeCustomers}
+        </h3>
+        <p className="mt-2 text-sm text-gray-400">
+          Customers with active accounts
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Inactive Customers</p>
+        <h3 className="mt-2 text-4xl font-bold text-red-500">
+          {inactiveCustomers}
+        </h3>
+        <p className="mt-2 text-sm text-gray-400">
+          Customers with inactive accounts
+        </p>
+      </div>
+    </div>
+  ) : (
+    <div className="rounded-3xl bg-white p-6 shadow-sm">
+      <div className="mb-6">
+        <h3 className="text-2xl font-semibold text-gray-900">
+          Customer Status Distribution
+        </h3>
+        <p className="mt-1 text-gray-500">
+          Percentage breakdown of active and inactive customers.
+        </p>
+      </div>
+
+      {customerChartData.length > 0 ? (
+        <div className="grid gap-8 xl:grid-cols-2 xl:items-center">
+          <div className="h-[360px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={customerChartData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={120}
+                  dataKey="value"
+                  label={renderPercentLabel}
+                  labelLine={false}
+                >
+                  {customerChartData.map((entry, index) => (
+                    <Cell
+                      key={`customer-cell-${index}`}
+                      fill={customerChartColors[index % customerChartColors.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value, name) => [value, name]} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="space-y-4">
+            {customerChartData.map((item, index) => {
+              const percent = totalCustomerChartValue
+                ? ((item.value / totalCustomerChartValue) * 100).toFixed(1)
+                : 0;
+
+              return (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between rounded-2xl bg-gray-50 px-5 py-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-4 w-4 rounded-full"
+                      style={{
+                        backgroundColor:
+                          customerChartColors[index % customerChartColors.length],
+                      }}
+                    />
+                    <span className="font-medium text-gray-700">
+                      {item.name}
+                    </span>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">{item.value}</p>
+                    <p className="text-sm text-gray-500">{percent}%</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
+          No customer data available.
+        </div>
+      )}
+    </div>
+  )}
+</section>
 
     <section className="rounded-3xl bg-white p-6 shadow-sm">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
+        <div className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-900">
             Customer Records
           </h2>
           <p className="mt-1 text-gray-500">
-            View customer details and start loan workflows quickly.
+            View all assigned customer details and start loan workflows quickly.
           </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setShowDeleted(false)}
-            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
-              !showDeleted
-                ? "bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Active Customers
-          </button>
-
-          <button
-            onClick={() => setShowDeleted(true)}
-            className={`rounded-2xl px-5 py-2.5 font-medium transition ${
-              showDeleted
-                ? "bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Inactive Customers
-          </button>
         </div>
       </div>
 
@@ -362,7 +489,7 @@ const handleStartLoan = async (userId) => {
             No customers found
           </h3>
           <p className="mt-2 text-gray-500">
-            There are no customer records in this view right now.
+            There are no customer records right now.
           </p>
         </div>
       )}

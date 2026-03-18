@@ -23,9 +23,21 @@ export const getAgentDashboard = async (req, res) => {
       isArchived: false,
     });
 
+    const pendingLoans = await Loan.countDocuments({
+      agentId,
+      status: "pending",
+      isArchived: false,
+    });
+
     const approvedLoans = await Loan.countDocuments({
       agentId,
       status: "approved",
+      isArchived: false,
+    });
+
+    const rejectedLoans = await Loan.countDocuments({
+      agentId,
+      status: "rejected",
       isArchived: false,
     });
 
@@ -59,11 +71,7 @@ export const getAgentDashboard = async (req, res) => {
       "loanDetails.loanType": "Business Loan",
     });
 
-    const pendingLoans = await Loan.countDocuments({
-  agentId: req.user._id,
-  status: "pending",
-  isArchived: false,
-});
+    
 
 const recentLoans = await Loan.find({
   agentId: req.user._id,
@@ -78,13 +86,14 @@ const recentLoans = await Loan.find({
       totalUsers,
       totalLoans,
       draftLoans,
+      pendingLoans,
       approvedLoans,
+      rejectedLoans,
       homeLoans,
       personalLoans,
       educationLoans,
       vehicleLoans,
       businessLoans,
-      pendingLoans,
       recentLoans,
     });
   } catch (error) {
@@ -96,12 +105,18 @@ const recentLoans = await Loan.find({
 export const getMyUsers = async (req, res) => {
   try {
     const showDeleted = req.query.deleted === "true";
+    const showAll = req.query.all === "true";
 
-    const users = await User.find({
+    const filter = {
       createdBy: req.user._id,
       role: "user",
-      isDeleted: showDeleted,
-    })
+    };
+
+    if (!showAll) {
+      filter.isDeleted = showDeleted;
+    }
+
+    const users = await User.find(filter)
       .select("-password")
       .sort({ userId: 1 });
 
@@ -111,9 +126,10 @@ export const getMyUsers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const getAgentLoans = async (req, res) => {
   try {
-    const { status, archived, type } = req.query;
+    const { status, archived, type, all } = req.query;
 
     const filter = {
       $and: [
@@ -126,12 +142,16 @@ export const getAgentLoans = async (req, res) => {
       ],
     };
 
-    if (archived === "true") {
-      filter.$and.push({ isArchived: true });
-    } else {
-      filter.$and.push({
-        $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
-      });
+    const showAll = all === "true";
+
+    if (!showAll) {
+      if (archived === "true") {
+        filter.$and.push({ isArchived: true });
+      } else {
+        filter.$and.push({
+          $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+        });
+      }
     }
 
     if (status) {
@@ -139,10 +159,10 @@ export const getAgentLoans = async (req, res) => {
     }
 
     if (type) {
-  filter.$and.push({
-    "loanDetails.loanType": { $regex: `^${type}$`, $options: "i" },
-  });
-}
+      filter.$and.push({
+        "loanDetails.loanType": { $regex: `^${type}$`, $options: "i" },
+      });
+    }
 
     const loans = await Loan.find(filter)
       .populate("userObjectId", "name userId isDeleted")
@@ -155,6 +175,7 @@ export const getAgentLoans = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const updateAgentProfile = async (req, res) => {
   try {
     const agent = await User.findById(req.user._id);

@@ -2,55 +2,55 @@ import { useEffect, useState } from "react";
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Sector } from "recharts";
 
 const AdminLoans = () => {
   const { token } = useAuth();
   const [loans, setLoans] = useState([]);
   const navigate = useNavigate();
-  const [showArchived, setShowArchived] = useState(false);
   const [searchParams] = useSearchParams();
 
   const loanTypeFilter = searchParams.get("loanType");
   const statusFilter = searchParams.get("status");
+  const [showChart, setShowChart] = useState(false);
+  const [activeLoanTypeIndex, setActiveLoanTypeIndex] = useState(0);
 
   const fetchLoans = async () => {
-    try {
-      const query = new URLSearchParams();
+  try {
+    const query = new URLSearchParams();
 
-      if (showArchived) {
-        query.append("showArchived", "true");
-      }
+    query.append("all", "true");
 
-      if (loanTypeFilter) {
-        query.append("loanType", loanTypeFilter);
-      }
-
-      if (statusFilter) {
-        query.append("status", statusFilter);
-      }
-
-      const url = `http://localhost:5000/api/admin/loans${
-        query.toString() ? `?${query.toString()}` : ""
-      }`;
-
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setLoans(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error(error);
+    if (loanTypeFilter) {
+      query.append("loanType", loanTypeFilter);
     }
-  };
+
+    if (statusFilter) {
+      query.append("status", statusFilter);
+    }
+
+    const url = `http://localhost:5000/api/admin/loans?${
+      query.toString()
+    }`;
+
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    setLoans(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   useEffect(() => {
-    if (token) {
-      fetchLoans();
-    }
-  }, [showArchived, token, loanTypeFilter, statusFilter]);
+  if (token) {
+    fetchLoans();
+  }
+}, [token, loanTypeFilter, statusFilter]);
 
   const handleArchive = async (loanId, e) => {
     e.stopPropagation();
@@ -93,7 +93,7 @@ const AdminLoans = () => {
   };
 
   const pageTitle = loanTypeFilter
-    ? `${loanTypeFilter} Loans`
+    ? `${loanTypeFilter}`
     : statusFilter
     ? `${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Loans`
     : "Loans";
@@ -103,6 +103,103 @@ const AdminLoans = () => {
     : statusFilter
     ? `Showing all ${statusFilter.toLowerCase()} loan applications.`
     : "Manage submitted loans, review statuses, and track assigned agents.";
+
+  const loanTypeChartMap = loans.reduce((acc, loan) => {
+  const type = loan.loanDetails?.loanType || "Unspecified";
+  acc[type] = (acc[type] || 0) + 1;
+  return acc;
+}, {});
+
+const loanTypeChartData = Object.entries(loanTypeChartMap).map(
+  ([name, value]) => ({
+    name,
+    value,
+  })
+);
+
+const loanTypeChartColors = [
+  "#2563EB", // Home / first
+  "#7C3AED", // Unknown
+  "#F59E0B", // Business
+  "#22C55E", // Education
+  "#EF4444", // Personal
+  "#0EA5E9", // Vehicle
+];
+
+const totalLoanTypeValue = loanTypeChartData.reduce(
+  (sum, item) => sum + item.value,
+  0
+);
+
+const renderPercentLabel = ({ percent }) =>
+  `${(percent * 100).toFixed(0)}%`;
+
+const renderActiveShape = (props) => {
+  const {
+    cx,
+    cy,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    fill,
+    payload,
+    percent,
+    value,
+  } = props;
+
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 10}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={outerRadius + 13}
+        outerRadius={outerRadius + 19}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.18}
+      />
+      <text
+        x={cx}
+        y={cy - 6}
+        textAnchor="middle"
+        fill="#111827"
+        className="text-sm font-semibold"
+      >
+        {payload.name}
+      </text>
+      <text
+        x={cx}
+        y={cy + 16}
+        textAnchor="middle"
+        fill="#6B7280"
+        className="text-xs"
+      >
+        {value} ({(percent * 100).toFixed(1)}%)
+      </text>
+    </g>
+  );
+};
+
+const handleLoanTypePieClick = (data) => {
+  if (!data?.name) return;
+
+  if (data.name === "Unspecified") {
+    navigate("/admin/loans?loanType=Unspecified");
+  } else {
+    navigate(`/admin/loans?loanType=${encodeURIComponent(data.name)}`);
+  }
+};
 
   const getStatusClasses = (status) => {
     switch (status) {
@@ -133,13 +230,14 @@ const AdminLoans = () => {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            {(loanTypeFilter || statusFilter) && (
             <button
-              onClick={() => setShowArchived(!showArchived)}
-              className="rounded-xl bg-white px-5 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50"
+            onClick={() => navigate("/admin/loans")}
+            className="rounded-xl border border-white/40 px-5 py-3 font-medium text-white transition hover:bg-white/10"
             >
-              {showArchived ? "Hide Deleted" : "Show Deleted"}
-            </button>
-
+              Clear Filter
+              </button>
+            )}
             <button
               onClick={() => navigate("/admin/dashboard")}
               className="rounded-xl border border-white/40 px-5 py-3 font-medium text-white transition hover:bg-white/10"
@@ -150,32 +248,136 @@ const AdminLoans = () => {
         </div>
       </section>
 
-      {/* Top filters summary */}
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Current View</p>
-          <h3 className="mt-2 text-2xl font-bold text-gray-900">{pageTitle}</h3>
-          <p className="mt-2 text-sm text-gray-400">
-            {showArchived ? "Including archived loans" : "Showing active loans"}
-          </p>
-        </div>
+      <section>
+  <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 className="text-2xl font-semibold text-gray-900">Loan Summary</h2>
+      <p className="mt-1 text-gray-500">
+        Overview of current records and loan type distribution.
+      </p>
+    </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Total Results</p>
-          <h3 className="mt-2 text-2xl font-bold text-indigo-600">{loans.length}</h3>
-          <p className="mt-2 text-sm text-gray-400">Loans in current filtered list</p>
-        </div>
+    <button
+      onClick={() => setShowChart(!showChart)}
+      className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+    >
+      {showChart ? "Show Cards" : "Show Loan Type Chart"}
+    </button>
+  </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500">Archive Mode</p>
-          <h3 className="mt-2 text-2xl font-bold text-gray-900">
-            {showArchived ? "Enabled" : "Disabled"}
-          </h3>
-          <p className="mt-2 text-sm text-gray-400">
-            Toggle deleted loans visibility
-          </p>
+  {!showChart ? (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Current View</p>
+        <h3 className="mt-2 text-2xl font-bold text-gray-900">{pageTitle}</h3>
+        <p className="mt-2 text-sm text-gray-400">
+          Showing all loans
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Total Results</p>
+        <h3 className="mt-2 text-2xl font-bold text-indigo-600">
+          {loans.length}
+        </h3>
+        <p className="mt-2 text-sm text-gray-400">
+          Loans in current filtered list
+        </p>
+      </div>
+
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <p className="text-sm font-medium text-gray-500">Archive Mode</p>
+        <h3 className="mt-2 text-2xl font-bold text-gray-900">
+          Unified View
+        </h3>
+        <p className="mt-2 text-sm text-gray-400">
+          Active and deleted loans shown together
+        </p>
+      </div>
+    </div>
+  ) : (
+    <div className="rounded-3xl bg-white p-6 shadow-sm">
+      <div className="mb-6">
+        <h3 className="text-2xl font-semibold text-gray-900">
+          Loan Type Distribution
+        </h3>
+        <p className="mt-1 text-gray-500">
+          Percentage breakdown of the current loan type mix.
+        </p>
+      </div>
+
+      {loanTypeChartData.length > 0 ? (
+        <div className="grid gap-8 xl:grid-cols-2 xl:items-center">
+          <div className="h-[360px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                activeIndex={activeLoanTypeIndex}
+                activeShape={renderActiveShape}
+                data={loanTypeChartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={70}
+                outerRadius={120}
+                dataKey="value"
+                label={renderPercentLabel}
+                labelLine={false}
+                onMouseEnter={(_, index) => setActiveLoanTypeIndex(index)}
+                onClick={handleLoanTypePieClick}
+                >
+                  {loanTypeChartData.map((entry, index) => (
+                    <Cell
+                    key={`loan-type-cell-${index}`}
+                    fill={loanTypeChartColors[index % loanTypeChartColors.length]}
+                    style={{ cursor: "pointer" }}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value, name) => [value, name]} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="space-y-4">
+            {loanTypeChartData.map((item, index) => {
+              const percent = totalLoanTypeValue
+                ? ((item.value / totalLoanTypeValue) * 100).toFixed(1)
+                : 0;
+
+              return (
+                <div
+                key={item.name}
+                onClick={() => handleLoanTypePieClick(item)}
+                className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 transition hover:bg-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="h-4 w-4 rounded-full"
+                      style={{
+                        backgroundColor:
+                          loanTypeChartColors[index % loanTypeChartColors.length],
+                      }}
+                    />
+                    <span className="font-medium text-gray-700">{item.name}</span>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">{item.value}</p>
+                    <p className="text-sm text-gray-500">{percent}%</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </section>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
+          No loan type data available.
+        </div>
+      )}
+    </div>
+  )}
+</section>
 
       {/* Table card */}
       <section className="rounded-3xl bg-white p-6 shadow-sm">

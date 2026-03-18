@@ -31,6 +31,11 @@ export const getDashboardStats = async (req, res) => {
       $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
+    const rejectedLoans = await Loan.countDocuments({
+      status: "rejected",
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    });
+
     const homeLoans = await Loan.countDocuments({
       "loanDetails.loanType": "Home Loan",
       $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
@@ -63,6 +68,7 @@ export const getDashboardStats = async (req, res) => {
       pendingLoans,
       draftLoans,
       approvedLoans,
+      rejectedLoans,
       homeLoans,
       personalLoans,
       educationLoans,
@@ -76,18 +82,30 @@ export const getDashboardStats = async (req, res) => {
 };
 export const getAllLoans = async (req, res) => {
   try {
-    const { loanType, showArchived, status } = req.query;
+    const { loanType, showArchived, status, all } = req.query;
     const filter = {};
+    const showAll = all === "true";
 
-    if (showArchived === "true") {
-      filter.isArchived = true;
-    } else {
-      filter.$or = [{ isArchived: false }, { isArchived: { $exists: false } }];
+    if (!showAll) {
+      if (showArchived === "true") {
+        filter.isArchived = true;
+      } else {
+        filter.$or = [{ isArchived: false }, { isArchived: { $exists: false } }];
+      }
     }
 
     if (loanType) {
-      filter["loanDetails.loanType"] = loanType;
-    }
+  if (loanType.toLowerCase() === "unspecified") {
+    filter.$or = [
+      ...(filter.$or || []),
+      { "loanDetails.loanType": { $exists: false } },
+      { "loanDetails.loanType": null },
+      { "loanDetails.loanType": "" },
+    ];
+  } else {
+    filter["loanDetails.loanType"] = loanType;
+  }
+}
 
     if (status) {
       filter.status = status;
@@ -104,16 +122,29 @@ export const getAllLoans = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const getAllAgents = async (req, res) => {
   try {
-    const agents = await User.find({
+    const { status } = req.query;
+
+    const filter = {
       role: "agent",
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }]
-    })
+      isDeleted: false,
+    };
+
+    if (status === "active") {
+      filter.isActive = true;
+    }
+
+    if (status === "inactive") {
+      filter.isActive = false;
+    }
+
+    const agents = await User.find(filter)
       .select("-password")
       .sort({ agentId: 1 });
 
-    res.status(200).json(agents);
+    res.json(agents);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -121,25 +152,24 @@ export const getAllAgents = async (req, res) => {
 };
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({ role: "user" })
+    const { status } = req.query;
+
+    const filter = { role: "user" };
+
+    if (status === "active") {
+      filter.isDeleted = false;
+      filter.isActive = true;
+    }
+
+    if (status === "inactive") {
+      filter.$or = [{ isDeleted: true }, { isActive: false }];
+    }
+
+    const users = await User.find(filter)
       .select("-password")
       .sort({ userId: 1 });
 
-    const usersWithLoanType = await Promise.all(
-      users.map(async (user) => {
-        const latestLoan = await Loan.findOne({
-          userObjectId: user._id,
-          isArchived: false,
-        }).sort({ loanId: 1 });
-
-        return {
-          ...user.toObject(),
-          loanType: latestLoan?.loanDetails?.loanType || "-",
-        };
-      })
-    );
-
-    res.status(200).json(usersWithLoanType);
+    res.json(users);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

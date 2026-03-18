@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Sector } from "recharts";
 
 const AgentDashboard = () => {
   const { token, user } = useAuth();
   const navigate = useNavigate();
+  const [showChart, setShowChart] = useState(false);
+  const [activeOverviewIndex, setActiveOverviewIndex] = useState(0);
+const [activeStatusIndex, setActiveStatusIndex] = useState(0);
 
   const [stats, setStats] = useState(() => {
     const savedStats = localStorage.getItem("agentDashboardStats");
@@ -16,6 +20,7 @@ const AgentDashboard = () => {
           pendingLoans: 0,
           draftLoans: 0,
           approvedLoans: 0,
+          rejectedLoans: 0,
           homeLoans: 0,
           personalLoans: 0,
           educationLoans: 0,
@@ -93,6 +98,15 @@ const AgentDashboard = () => {
       bg: "bg-green-50",
       icon: "✅",
     },
+    {
+      title: "Rejected Loans",
+      value: stats.rejectedLoans,
+      subtitle: "Declined applications",
+      onClick: () => navigate("/agent/loans?status=rejected"),
+      color: "text-red-600",
+      bg: "bg-red-50",
+      icon: "❌",
+    }
   ];
 
   const loanTypeCards = [
@@ -124,6 +138,105 @@ const AgentDashboard = () => {
   ];
 
   const recentLoans = stats.recentLoans || [];
+
+  const overviewChartData = [
+  { name: "Customers", value: stats.totalUsers || 0 },
+  { name: "Total Loans", value: stats.totalLoans || 0 },
+].filter((item) => item.value > 0);
+
+const statusChartData = [
+  { name: "Pending Loans", value: stats.pendingLoans || 0 },
+  { name: "Draft Loans", value: stats.draftLoans || 0 },
+  { name: "Approved Loans", value: stats.approvedLoans || 0 },
+  { name: "Rejected Loans", value: stats.rejectedLoans || 0 },
+].filter((item) => item.value > 0);
+
+const overviewColors = ["#4F46E5", "#2563EB"];
+const statusColors = ["#0EA5E9", "#F59E0B", "#22C55E", "#EF4444"];
+
+const renderPercentLabel = ({ percent }) =>
+  `${(percent * 100).toFixed(0)}%`;
+
+const handleOverviewPieClick = (data) => {
+  if (!data?.name) return;
+
+  if (data.name === "Customers") {
+    navigate("/agent/users");
+  } else if (data.name === "Total Loans") {
+    navigate("/agent/loans");
+  }
+};
+
+const handleStatusPieClick = (data) => {
+  if (!data?.name) return;
+
+  if (data.name === "Pending Loans") {
+    navigate("/agent/loans?status=pending");
+  } else if (data.name === "Draft Loans") {
+    navigate("/agent/loans?status=draft");
+  } else if (data.name === "Approved Loans") {
+    navigate("/agent/loans?status=approved");
+  } else if (data.name === "Rejected Loans") {
+    navigate("/agent/loans?status=rejected");
+  }
+};
+
+const renderActiveShape = (props) => {
+  const {
+    cx,
+    cy,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    fill,
+    payload,
+    percent,
+    value,
+  } = props;
+
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 10}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={outerRadius + 13}
+        outerRadius={outerRadius + 19}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.18}
+      />
+      <text
+        x={cx}
+        y={cy - 6}
+        textAnchor="middle"
+        fill="#111827"
+        className="text-sm font-semibold"
+      >
+        {payload.name}
+      </text>
+      <text
+        x={cx}
+        y={cy + 16}
+        textAnchor="middle"
+        fill="#6B7280"
+        className="text-xs"
+      >
+        {value} ({(percent * 100).toFixed(1)}%)
+      </text>
+    </g>
+  );
+};
 
   return (
     <div className="space-y-8">
@@ -160,41 +273,234 @@ const AgentDashboard = () => {
       </section>
 
       <section>
-        <div className="mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Overview
-          </h2>
+  <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 className="text-2xl font-semibold text-gray-900">
+        Overview
+      </h2>
+      <p className="mt-1 text-gray-500">
+        Quick summary of your customers and current loan activity.
+      </p>
+    </div>
+
+    <button
+      onClick={() => setShowChart(!showChart)}
+      className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+    >
+      {showChart ? "Show Cards" : "Show Charts"}
+    </button>
+  </div>
+
+  {!showChart ? (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      {statCards.map((card) => (
+        <div
+          key={card.title}
+          onClick={card.onClick}
+          className="group cursor-pointer rounded-3xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+        >
+          <div className="flex items-start justify-between">
+            <div
+              className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.bg} text-xl`}
+            >
+              {card.icon}
+            </div>
+          </div>
+
+          <p className="mt-5 text-sm font-medium text-gray-500">
+            {card.title}
+          </p>
+          <h3 className={`mt-2 text-4xl font-bold ${card.color}`}>
+            {card.value}
+          </h3>
+          <p className="mt-2 text-sm text-gray-400">{card.subtitle}</p>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="space-y-6">
+      {/* Platform Overview */}
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <h3 className="text-2xl font-semibold text-gray-900">
+            Platform Overview
+          </h3>
           <p className="mt-1 text-gray-500">
-            Quick summary of your customers and current loan activity.
+            Percentage split of customers and total assigned loans.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
-          {statCards.map((card) => (
-            <div
-              key={card.title}
-              onClick={card.onClick}
-              className="group cursor-pointer rounded-3xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="flex items-start justify-between">
-                <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.bg} text-xl`}
-                >
-                  {card.icon}
-                </div>
-              </div>
-
-              <p className="mt-5 text-sm font-medium text-gray-500">
-                {card.title}
-              </p>
-              <h3 className={`mt-2 text-4xl font-bold ${card.color}`}>
-                {card.value}
-              </h3>
-              <p className="mt-2 text-sm text-gray-400">{card.subtitle}</p>
+        {overviewChartData.length > 0 ? (
+          <div className="grid gap-8 xl:grid-cols-2 xl:items-center">
+            <div className="h-[360px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                  activeIndex={activeOverviewIndex}
+                  activeShape={renderActiveShape}
+                  data={overviewChartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={70}
+                  outerRadius={120}
+                  dataKey="value"
+                  label={renderPercentLabel}
+                  labelLine={false}
+                  onMouseEnter={(_, index) => setActiveOverviewIndex(index)}
+                  onClick={handleOverviewPieClick}
+                  >
+                    {overviewChartData.map((entry, index) => (
+                      <Cell
+                      key={`overview-cell-${index}`}
+                      fill={overviewColors[index % overviewColors.length]}
+                      style={{ cursor: "pointer" }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value, name) => [value, name]} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
-          ))}
+
+            <div className="space-y-4">
+              {overviewChartData.map((item, index) => {
+                const total = overviewChartData.reduce(
+                  (sum, current) => sum + current.value,
+                  0
+                );
+                const percent = total
+                  ? ((item.value / total) * 100).toFixed(1)
+                  : 0;
+
+                return (
+                  <div
+                  key={item.name}
+                  onClick={() => handleOverviewPieClick(item)}
+                  className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 transition hover:bg-gray-100"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="h-4 w-4 rounded-full"
+                        style={{
+                          backgroundColor:
+                            overviewColors[index % overviewColors.length],
+                        }}
+                      />
+                      <span className="font-medium text-gray-700">
+                        {item.name}
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">
+                        {item.value}
+                      </p>
+                      <p className="text-sm text-gray-500">{percent}%</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
+            No overview data available.
+          </div>
+        )}
+      </div>
+
+      {/* Loan Status Distribution */}
+      <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <h3 className="text-2xl font-semibold text-gray-900">
+            Loan Status Distribution
+          </h3>
+          <p className="mt-1 text-gray-500">
+            Percentage breakdown of your current assigned loan statuses.
+          </p>
         </div>
-      </section>
+
+        {statusChartData.length > 0 ? (
+          <div className="grid gap-8 xl:grid-cols-2 xl:items-center">
+            <div className="h-[360px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                  activeIndex={activeStatusIndex}
+                  activeShape={renderActiveShape}
+                  data={statusChartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={70}
+                  outerRadius={120}
+                  dataKey="value"
+                  label={renderPercentLabel}
+                  labelLine={false}
+                  onMouseEnter={(_, index) => setActiveStatusIndex(index)}
+                  onClick={handleStatusPieClick}
+                  >
+                    {statusChartData.map((entry, index) => (
+                      <Cell
+                      key={`status-cell-${index}`}
+                      fill={statusColors[index % statusColors.length]}
+                      style={{ cursor: "pointer" }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value, name) => [value, name]} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="space-y-4">
+              {statusChartData.map((item, index) => {
+                const total = statusChartData.reduce(
+                  (sum, current) => sum + current.value,
+                  0
+                );
+                const percent = total
+                  ? ((item.value / total) * 100).toFixed(1)
+                  : 0;
+
+                return (
+                  <div
+                  key={item.name}
+                  onClick={() => handleStatusPieClick(item)}
+                  className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 transition hover:bg-gray-100"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="h-4 w-4 rounded-full"
+                        style={{
+                          backgroundColor:
+                            statusColors[index % statusColors.length],
+                        }}
+                      />
+                      <span className="font-medium text-gray-700">
+                        {item.name}
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">
+                        {item.value}
+                      </p>
+                      <p className="text-sm text-gray-500">{percent}%</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
+            No loan status data available.
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</section>
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="rounded-3xl bg-white p-6 shadow-sm xl:col-span-2">
