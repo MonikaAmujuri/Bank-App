@@ -1,13 +1,16 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Sector } from "recharts";
 
 
 const AgentUsers = () => {
   const { token } = useAuth();
   const [users, setUsers] = useState([]);
+  const [searchParams] = useSearchParams();
+const statusFilter = searchParams.get("status");
+const [activeCustomerIndex, setActiveCustomerIndex] = useState(0);
   const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
 const [name, setName] = useState("");
@@ -22,15 +25,28 @@ const [showChart, setShowChart] = useState(false);
 useEffect(() => {
   if (!token) return;
   fetchUsers();
-}, [token]);
+}, [token, statusFilter]);
 
 const fetchUsers = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/agent/users?all=true", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const query = new URLSearchParams();
+
+    query.append("all", "true");
+
+    if (statusFilter) {
+      query.append("status", statusFilter);
+    }
+
+    const res = await fetch(
+      `http://localhost:5000/api/agent/users${
+        query.toString() ? `?${query.toString()}` : ""
+      }`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     const data = await res.json();
 
@@ -110,15 +126,17 @@ const handleDelete = async (id) => {
       }
     );
 
+    const data = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      throw new Error("Failed to delete user");
+      throw new Error(data.message || "Failed to delete user");
     }
 
     fetchUsers(); // refresh list
 
   } catch (error) {
     console.error(error);
-    alert("Something went wrong");
+    alert(error.message || "Something went wrong");
   }
 };
 
@@ -134,15 +152,17 @@ const handleRestore = async (id) => {
       }
     );
 
+    const data = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      throw new Error("Failed to restore user");
+      throw new Error(data.message || "Failed to restore user");
     }
 
     fetchUsers(); // refresh list
 
   } catch (error) {
     console.error(error);
-    alert("Something went wrong");
+    alert(error.message || "Something went wrong");
   }
 };
 
@@ -206,6 +226,80 @@ const totalCustomerChartValue = customerChartData.reduce(
 const renderPercentLabel = ({ percent }) =>
   `${(percent * 100).toFixed(0)}%`;
 
+const pageTitle =
+  statusFilter === "active"
+    ? "Active Customers"
+    : statusFilter === "inactive"
+    ? "Inactive Customers"
+    : "My Customers";
+
+const renderActiveShape = (props) => {
+  const {
+    cx,
+    cy,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    fill,
+    payload,
+    percent,
+    value,
+  } = props;
+
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 10}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={outerRadius + 13}
+        outerRadius={outerRadius + 19}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.18}
+      />
+      <text
+        x={cx}
+        y={cy - 6}
+        textAnchor="middle"
+        fill="#111827"
+        className="text-sm font-semibold"
+      >
+        {payload.name}
+      </text>
+      <text
+        x={cx}
+        y={cy + 16}
+        textAnchor="middle"
+        fill="#6B7280"
+        className="text-xs"
+      >
+        {value} ({(percent * 100).toFixed(1)}%)
+      </text>
+    </g>
+  );
+};
+
+const handleCustomerPieClick = (data) => {
+  if (!data?.name) return;
+
+  if (data.name === "Active Customers") {
+    navigate("/agent/users?status=active");
+  } else if (data.name === "Inactive Customers") {
+    navigate("/agent/users?status=inactive");
+  }
+};
+
   return (
   <div className="space-y-8">
     <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
@@ -214,19 +308,30 @@ const renderPercentLabel = ({ percent }) =>
           <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-100">
             Customer Management
           </p>
-          <h1 className="text-3xl font-bold md:text-4xl">My Customers</h1>
+          <h1 className="text-3xl font-bold md:text-4xl">{pageTitle}</h1>
           <p className="mt-3 max-w-2xl text-indigo-100">
             Manage your assigned customers, review their status, and start loan
             applications from one place.
           </p>
         </div>
 
-        <button
+        <div className="flex flex-wrap gap-3">
+          {statusFilter && (
+            <button
+            onClick={() => navigate("/agent/users")}
+            className="rounded-2xl border border-white/40 px-6 py-3 font-medium text-white transition hover:bg-white/10"
+            >
+              Clear Filter
+            </button>
+          )}
+          
+          <button
           onClick={() => setShowForm(true)}
           className="rounded-2xl bg-white px-6 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50"
-        >
-          + Add Customer
-        </button>
+          >
+            + Add Customer
+          </button>
+        </div>
       </div>
     </section>
 
@@ -298,18 +403,24 @@ const renderPercentLabel = ({ percent }) =>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={customerChartData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  dataKey="value"
-                  label={renderPercentLabel}
-                  labelLine={false}
+                activeIndex={activeCustomerIndex}
+                activeShape={renderActiveShape}
+                data={customerChartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={70}
+                outerRadius={120}
+                dataKey="value"
+                label={renderPercentLabel}
+                labelLine={false}
+                onMouseEnter={(_, index) => setActiveCustomerIndex(index)}
+                onClick={handleCustomerPieClick}
                 >
                   {customerChartData.map((entry, index) => (
                     <Cell
-                      key={`customer-cell-${index}`}
-                      fill={customerChartColors[index % customerChartColors.length]}
+                    key={`customer-cell-${index}`}
+                    fill={customerChartColors[index % customerChartColors.length]}
+                    style={{ cursor: "pointer" }}
                     />
                   ))}
                 </Pie>
@@ -326,8 +437,9 @@ const renderPercentLabel = ({ percent }) =>
 
               return (
                 <div
-                  key={item.name}
-                  className="flex items-center justify-between rounded-2xl bg-gray-50 px-5 py-4"
+                key={item.name}
+                onClick={() => handleCustomerPieClick(item)}
+                className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 transition hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -458,7 +570,7 @@ const renderPercentLabel = ({ percent }) =>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRestore(user.userId);
+                              handleRestore(user._id);
                             }}
                             className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700"
                           >
@@ -468,7 +580,7 @@ const renderPercentLabel = ({ percent }) =>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(user.userId);
+                              handleDelete(user._id);
                             }}
                             className="rounded-xl bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600"
                           >

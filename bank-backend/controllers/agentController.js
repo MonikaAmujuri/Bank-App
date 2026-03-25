@@ -106,13 +106,19 @@ export const getMyUsers = async (req, res) => {
   try {
     const showDeleted = req.query.deleted === "true";
     const showAll = req.query.all === "true";
+    const { status } = req.query;
 
     const filter = {
       createdBy: req.user._id,
       role: "user",
     };
 
-    if (!showAll) {
+    if (status === "active") {
+      filter.isDeleted = false;
+      filter.isActive = true;
+    } else if (status === "inactive") {
+      filter.$or = [{ isDeleted: true }, { isActive: false }];
+    } else if (!showAll) {
       filter.isDeleted = showDeleted;
     }
 

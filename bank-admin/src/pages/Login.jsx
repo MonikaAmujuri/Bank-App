@@ -99,6 +99,8 @@ const Login = () => {
     const firebaseUser = result.user;
     const idToken = await firebaseUser.getIdToken();
 
+    console.log("Firebase ID Token:", idToken);
+
     const res = await fetch("http://localhost:5000/api/auth/firebase-login", {
       method: "POST",
       headers: {

@@ -1,10 +1,11 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const AgentUserDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { token } = useAuth();
 
   const [data, setData] = useState({
@@ -339,8 +340,9 @@ const handleCopyPassword = async () => {
             <tbody>
               {data.loans.map((loan) => (
                 <tr
-                  key={loan._id}
-                  className="border-b border-gray-50 transition hover:bg-gray-50"
+                key={loan._id}
+                onClick={() => navigate(`/agent/loans/${loan.loanId}`)}
+                className="cursor-pointer border-b border-gray-50 transition hover:bg-gray-50"
                 >
                   <td className="py-5 font-semibold text-gray-900">
                     {loan.loanId}

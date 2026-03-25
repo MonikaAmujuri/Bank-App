@@ -2,21 +2,8 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { generateSecurePassword } from "../utils/generatePassword.js";
 import { generateUserId } from "../utils/generateUserId.js";
+import { generateAgentId } from "../utils/generateUserId.js";
 
-const generateAgentId = async () => {
-  const lastAgent = await User.findOne({ role: "agent" }).sort({ createdAt: -1 });
-
-  let newAgentNumber = 1;
-
-  if (lastAgent && lastAgent.agentId) {
-    const lastNumber = parseInt(lastAgent.agentId.replace("AGT", ""), 10);
-    if (!Number.isNaN(lastNumber)) {
-      newAgentNumber = lastNumber + 1;
-    }
-  }
-
-  return `AGT${String(newAgentNumber).padStart(4, "0")}`;
-};
 
 export const createAgent = async (req, res) => {
   try {
@@ -65,9 +52,17 @@ export const createAgent = async (req, res) => {
       password: plainPassword, // Returned once
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+  console.error(error);
+
+  if (error.code === 11000) {
+    return res.status(400).json({
+      message: "Duplicate field value",
+      field: Object.keys(error.keyPattern || {})[0],
+    });
   }
+
+  res.status(500).json({ message: "Server error" });
+}
 };
 
 export const createUser = async (req, res) => {

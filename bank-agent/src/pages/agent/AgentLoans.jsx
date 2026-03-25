@@ -2,12 +2,13 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Sector } from "recharts";
 
 const AgentLoans = () => {
   const { token } = useAuth();
   const [loans, setLoans] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [activeStatusIndex, setActiveStatusIndex] = useState(0);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const statusFilter = searchParams.get("status");
@@ -211,6 +212,77 @@ const renderPercentLabel = ({ percent }) =>
     return `₹${numericAmount.toLocaleString("en-IN")}`;
   };
 
+  const renderActiveShape = (props) => {
+  const {
+    cx,
+    cy,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    fill,
+    payload,
+    percent,
+    value,
+  } = props;
+
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 10}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={outerRadius + 13}
+        outerRadius={outerRadius + 19}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.18}
+      />
+      <text
+        x={cx}
+        y={cy - 6}
+        textAnchor="middle"
+        fill="#111827"
+        className="text-sm font-semibold"
+      >
+        {payload.name}
+      </text>
+      <text
+        x={cx}
+        y={cy + 16}
+        textAnchor="middle"
+        fill="#6B7280"
+        className="text-xs"
+      >
+        {value} ({(percent * 100).toFixed(1)}%)
+      </text>
+    </g>
+  );
+};
+
+const handleStatusPieClick = (data) => {
+  if (!data?.name) return;
+
+  if (data.name === "Pending Loans") {
+    navigate("/agent/loans?status=pending");
+  } else if (data.name === "Draft Loans") {
+    navigate("/agent/loans?status=draft");
+  } else if (data.name === "Approved Loans") {
+    navigate("/agent/loans?status=approved");
+  } else if (data.name === "Rejected Loans") {
+    navigate("/agent/loans?status=rejected");
+  }
+};
+
   return (
   <div className="space-y-8">
     <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
@@ -226,6 +298,14 @@ const renderPercentLabel = ({ percent }) =>
         </div>
 
         <div className="flex flex-wrap gap-3">
+          {statusFilter && (
+            <button
+            onClick={() => navigate("/agent/loans")}
+            className="rounded-2xl border border-white/40 px-5 py-3 font-medium text-white transition hover:bg-white/10"
+            >
+              Clear Filter
+            </button>
+          )}
           <button
             onClick={() => navigate("/agent/loans?status=pending")}
             className="rounded-2xl bg-white px-5 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50"
@@ -317,18 +397,24 @@ const renderPercentLabel = ({ percent }) =>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={statusChartData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={120}
-                  dataKey="value"
-                  label={renderPercentLabel}
-                  labelLine={false}
+                activeIndex={activeStatusIndex}
+                activeShape={renderActiveShape}
+                data={statusChartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={70}
+                outerRadius={120}
+                dataKey="value"
+                label={renderPercentLabel}
+                labelLine={false}
+                onMouseEnter={(_, index) => setActiveStatusIndex(index)}
+                onClick={handleStatusPieClick}
                 >
                   {statusChartData.map((entry, index) => (
                     <Cell
-                      key={`status-cell-${index}`}
-                      fill={statusChartColors[index % statusChartColors.length]}
+                    key={`status-cell-${index}`}
+                    fill={statusChartColors[index % statusChartColors.length]}
+                    style={{ cursor: "pointer" }}
                     />
                   ))}
                 </Pie>
@@ -345,8 +431,9 @@ const renderPercentLabel = ({ percent }) =>
 
               return (
                 <div
-                  key={item.name}
-                  className="flex items-center justify-between rounded-2xl bg-gray-50 px-5 py-4"
+                key={item.name}
+                onClick={() => handleStatusPieClick(item)}
+                className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 transition hover:bg-gray-100"
                 >
                   <div className="flex items-center gap-3">
                     <span

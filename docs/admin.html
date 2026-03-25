@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin API Documentation</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="topbar">
+        Bank App API Documentation
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">Bank App API</div>
+        <ul class="nav-links">
+            <li><a href="./guide.html">Guide</a></li>
+            <li><a href="auth.html">Auth</a></li>
+            <li><a href="admin.html" class="active">Admin</a></li>
+            <li><a href="agent.html">Agent</a></li>
+            <li><a href="customer.html">Customer</a></li>
+            <li><a href="loans.html">Loans</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Admin</h1>
+        <p>This page contains admin-only endpoints for dashboard, users, agents, and loan management.</p>
+
+        <h2>Admin Dashboard</h2>
+        <p>This endpoint fetches admin dashboard statistics like users, agents, total loans, loan statuses, and loan
+            type counts.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/dashboard</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">const</span><span class="code-white"> fetchStats = </span><span class="code-blue">async</span><span class="code-white"> () =&gt; {</span>
+  <span class="code-blue">try</span><span class="code-white"> {</span>
+    <span class="code-blue">const</span><span class="code-white"> res = </span><span class="code-blue">await</span><span class="code-white"> </span><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/dashboard"</span><span class="code-white">, {</span>
+      <span class="code-red">headers</span><span class="code-white">: {</span>
+        <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+      <span class="code-white">},</span>
+    <span class="code-white">});</span>
+
+    <span class="code-blue">const</span><span class="code-white"> data = </span><span class="code-blue">await</span><span class="code-white"> res.</span><span class="code-blue">json</span><span class="code-white">();</span>
+  <span class="code-white">}</span> <span class="code-blue">catch</span><span class="code-white"> (</span><span class="code-purple">error</span><span class="code-white">) {</span>
+    <span class="code-blue">console.log</span><span class="code-white">(</span><span class="code-purple">error</span><span class="code-white">);</span>
+  <span class="code-white">}</span>
+<span class="code-white">};</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"users"</span><span class="code-white">: </span><span class="code-green">5</span><span class="code-white">,</span>
+  <span class="code-red">"agents"</span><span class="code-white">: </span><span class="code-green">2</span><span class="code-white">,</span>
+  <span class="code-red">"loans"</span><span class="code-white">: </span><span class="code-green">7</span><span class="code-white">,</span>
+  <span class="code-red">"pendingLoans"</span><span class="code-white">: </span><span class="code-green">0</span><span class="code-white">,</span>
+  <span class="code-red">"draftLoans"</span><span class="code-white">: </span><span class="code-green">3</span><span class="code-white">,</span>
+  <span class="code-red">"approvedLoans"</span><span class="code-white">: </span><span class="code-green">3</span><span class="code-white">,</span>
+  <span class="code-red">"rejectedLoans"</span><span class="code-white">: </span><span class="code-green">1</span><span class="code-white">,</span>
+  <span class="code-red">"homeLoans"</span><span class="code-white">: </span><span class="code-green">3</span><span class="code-white">,</span>
+  <span class="code-red">"personalLoans"</span><span class="code-white">: </span><span class="code-green">1</span><span class="code-white">,</span>
+  <span class="code-red">"educationLoans"</span><span class="code-white">: </span><span class="code-green">0</span><span class="code-white">,</span>
+  <span class="code-red">"businessLoans"</span><span class="code-white">: </span><span class="code-green">1</span><span class="code-white">,</span>
+  <span class="code-red">"vehicleLoans"</span><span class="code-white">: </span><span class="code-green">0</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token in the Authorization header. It returns overall
+            dashboard statistics for the admin panel.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      199
+VUS                 10
+Failed Requests     0%
+Avg Duration        553ms
+P(95) Duration      1.2s
+Requests/sec        6.33</span></pre>
+        </div>
+
+        <h2>Admin Loans</h2>
+        <p>This endpoint fetches the admin loan list based on query parameters like loan type, archived status, or other
+            filters.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?loanType/status</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">const</span><span class="code-white"> url = </span><span class="code-yellow">`http://localhost:5000/api/admin/loans?${query.toString()}`</span><span class="code-white">;</span>
+
+<span class="code-blue">const</span><span class="code-white"> res = </span><span class="code-blue">await</span><span class="code-white"> </span><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-purple">url</span><span class="code-white">, {</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"createdBy"</span><span class="code-white">: </span><span class="code-purple">null</span><span class="code-white">,</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699feebf74e0522950c7fdfb"</span><span class="code-white">,</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0001"</span><span class="code-white">,</span>
+    <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span><span class="code-white">,</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User1"</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span>
+    <span class="code-white">}</span><span class="code-white">,</span>
+    <span class="code-red">"..."</span><span class="code-white">: </span><span class="code-yellow">"..."</span>
+  <span class="code-white">}</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Query parameters can be used to filter loans
+            before fetching the result.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      226
+VUS                 10
+Failed Requests     0%
+Avg Duration        355ms
+P(95) Duration      1.11s
+Requests/sec        7.05</span></pre>
+        </div>
+
+        <h2>Get Draft Loans</h2>
+        <p>This endpoint fetches all loans whose status is set to draft.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?status=draft</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?status=draft"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69a034ad4c789227ce41330a"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User2"</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0002"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"agentId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69bd0e97f30336efaee5a4cb"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Agent..."</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"draft"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>status=draft</code> query
+            parameter filters the loan list to only draft loans.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      269
+VUS                 10
+Failed Requests     0%
+Avg Duration        147ms
+P(95) Duration      153ms
+Requests/sec        8.6</span></pre>
+        </div>
+
+        <h2>Get Pending Loans</h2>
+        <p>This endpoint fetches all loans whose status is set to pending.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?status=pending</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?status=pending"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User1..."</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"pending"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>status=pending</code> query
+            parameter filters the loan list to only pending loans.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      266
+VUS                 10
+Failed Requests     0%
+Avg Duration        149ms
+P(95) Duration      152ms
+Requests/sec        8.5</span></pre>
+        </div>
+
+        <h2>Get Approved Loans</h2>
+        <p>This endpoint fetches all loans whose status is set to approved.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?status=approved</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?status=approved"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User1..."</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"approved"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>status=approved</code> query
+            parameter filters the loan list to only approved loans.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      270
+VUS                 10
+Failed Requests     0%
+Avg Duration        144ms
+P(95) Duration      148ms
+Requests/sec        8.6</span></pre>
+        </div>
+
+        <h2>Get Rejected Loans</h2>
+        <p>This endpoint fetches all loans whose status is set to rejected.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?status=rejected</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?status=rejected"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User1..."</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"rejected"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>status=rejected</code> query
+            parameter filters the loan list to only rejected loans.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      266
+VUS                 10
+Failed Requests     0%
+Avg Duration        149ms
+P(95) Duration      166ms
+Requests/sec        8.5</span></pre>
+        </div>
+
+        <h2>Get Personal Loans</h2>
+        <p>This endpoint fetches all loans whose loan type is Personal Loan.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?loanType=Personal%20Loan</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?loanType=Personal%20Loan"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69b5051143bfd732729e8258"</span><span class="code-white">,</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0007"</span><span class="code-white">,</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69aeb8da08bd3b5d93d0ca7a"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Sam"</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0003"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"loan-type"</span><span class="code-white">: </span><span class="code-yellow">"Personal Loan"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>loanType=Personal%20Loan</code>
+            query parameter filters the loan list to only Home Loan records.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      270
+VUS                 10
+Failed Requests     0%
+Avg Duration        142ms
+P(95) Duration      155ms
+Requests/sec        8.6</span></pre>
+        </div>
+
+        <h2>Get Home Loans</h2>
+        <p>This endpoint fetches all loans whose loan type is Home Loan.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?loanType=Home%20Loan</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?loanType=Home%20Loan"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69a14b6042d252708a5b01d5"</span><span class="code-white">,</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0003"</span><span class="code-white">,</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User1..."</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"loan-type"</span><span class="code-white">: </span><span class="code-yellow">"Home Loan"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>loanType=Home%20Loan</code>
+            query parameter filters the loan list to only Home Loan records.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      269
+VUS                 10
+Failed Requests     0%
+Avg Duration        146ms
+P(95) Duration      160ms
+Requests/sec        8.6</span></pre>
+        </div>
+
+        <h2>Get Education Loans</h2>
+        <p>This endpoint fetches all loans whose loan type is Education Loan.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?loanType=Education%20Loan</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?loanType=Education%20Loan"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+    <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"No loans found"</span><span class="code-white">,</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>loanType=Education%20Loan</code>
+            query parameter filters the loan list to only Home Loan records.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      265
+VUS                 10
+Failed Requests     0%
+Avg Duration        148ms
+P(95) Duration      160ms
+Requests/sec        8.5</span></pre>
+        </div>
+
+        <h2>Get Business Loans</h2>
+        <p>This endpoint fetches all loans whose loan type is Business Loan.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?loanType=Business%20Loan</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?loanType=Business%20Loan"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69b25020448d74aa1f263c2b"</span><span class="code-white">,</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0005"</span><span class="code-white">,</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69afec0f3aab80c84c6ba09b"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User.."</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0004"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"loan-type"</span><span class="code-white">: </span><span class="code-yellow">"Business Loan"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>loanType=Business%20Loan</code>
+            query parameter filters the loan list to only Home Loan records.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      269
+VUS                 10
+Failed Requests     0%
+Avg Duration        142ms
+P(95) Duration      167ms
+Requests/sec        8.6</span></pre>
+        </div>
+
+        <h2>Get Vehicle Loans</h2>
+        <p>This endpoint fetches all loans whose loan type is Vehicle Loan.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/loans?loanType=Vehicle%20Loan</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/loans?loanType=Vehicle%20Loan"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"GET"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+    <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"No loans found"</span><span class="code-white">,</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The <code>loanType=Vehicle%20Loan</code>
+            query parameter filters the loan list to only Home Loan records.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      267
+VUS                 10
+Failed Requests     0%
+Avg Duration        147ms
+P(95) Duration      149ms
+Requests/sec        8.6</span></pre>
+        </div>
+
+
+        <h2>Create Agent</h2>
+        <p>This endpoint allows the admin to create a new agent by sending basic agent details. The backend returns the
+            created agent data and generated password.</p>
+
+        <div class="endpoint-title">
+            <span class="method post">POST</span>
+            <span class="route">/api/admin/create-agent</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/create-agent"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"POST"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({ </span><span class="code-red">name</span><span class="code-white">, </span><span class="code-red">email</span><span class="code-white">, </span><span class="code-red">phone</span><span class="code-white">, </span><span class="code-red">location</span><span class="code-white">, </span><span class="code-red">pincode</span><span class="code-white"> }),</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Agent created successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"agent"</span><span class="code-white">: {</span>
+    <span class="code-red">"id"</span><span class="code-white">: </span><span class="code-yellow">"69bcff06f30336efaee5a3fe"</span><span class="code-white">,</span>
+    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Agent..."</span><span class="code-white">,</span>
+    <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"agent123@example.com"</span><span class="code-white">,</span>
+    <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"9876543210"</span><span class="code-white">,</span>
+    <span class="code-red">"location"</span><span class="code-white">: </span><span class="code-yellow">"Guntur"</span><span class="code-white">,</span>
+    <span class="code-red">"pincode"</span><span class="code-white">: </span><span class="code-yellow">"522002"</span><span class="code-white">,</span>
+    <span class="code-red">"agentId"</span><span class="code-white">: </span><span class="code-yellow">"AGT0003"</span><span class="code-white">,</span>
+    <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"agent"</span>
+  <span class="code-white">},</span>
+  <span class="code-red">"password"</span><span class="code-white">: </span><span class="code-yellow">"9_HX2l)D#(su"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Store or share the generated password securely
+            because it is returned only at the time of agent creation.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      24
+VUS                 10
+Failed Requests     0%
+Avg Duration        277ms
+P(95) Duration      295ms
+Requests/sec        0.7</span></pre>
+        </div>
+
+        <h2>Get Agents</h2>
+        <p>This endpoint fetches the list of agents. Query parameters can be used to filter the result when needed.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/agents</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">`http://localhost:5000/api/admin/agents${</span>
+<span class="code-yellow">  query.toString() ? `?${query.toString()}` : ""</span>
+<span class="code-yellow">}`</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fd764dd531d0dcaf9ab66"</span><span class="code-white">,</span>
+    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Agent 1"</span><span class="code-white">,</span>
+    <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"agent@bank.com"</span><span class="code-white">,</span>
+    <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"agent"</span><span class="code-white">,</span>
+    <span class="code-red">"createdBy"</span><span class="code-white">: </span><span class="code-yellow">"699ef3399e1cdb38eec7210d"</span><span class="code-white">,</span>
+    <span class="code-red">"isDeleted"</span><span class="code-white">: </span><span class="code-purple">false</span><span class="code-white">,</span>
+    <span class="code-red">"isActive"</span><span class="code-white">: </span><span class="code-purple">true</span><span class="code-white">,</span>
+    <span class="code-red">"location"</span><span class="code-white">: </span><span class="code-yellow">"Brodipet, Guntur"</span><span class="code-white">,</span>
+    <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"+918341791657"</span><span class="code-white">,</span>
+    <span class="code-red">"pincode"</span><span class="code-white">: </span><span class="code-yellow">"522004"</span><span class="code-white">,</span>
+    <span class="code-red">"agentId"</span><span class="code-white">: </span><span class="code-yellow">"AGT0001"</span><span class="code-white">,</span>
+    <span class="code-red">"firebaseUid"</span><span class="code-white">: </span><span class="code-yellow">"75Ut6olvzEZ9WNwVhmbA7U5LrYB3"</span><span class="code-white">,</span>
+    <span class="code-red">...</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Query parameters can be added dynamically to
+            fetch filtered agent data.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      248
+VUS                 10
+Failed Requests     0%
+Avg Duration        232ms
+P(95) Duration      415ms
+Requests/sec        7.7</span></pre>
+        </div>
+
+        <h2>Get Users</h2>
+        <p>This endpoint fetches the list of users. Query parameters can be used to filter the result when needed.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/users</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">`http://localhost:5000/api/admin/users${</span>
+<span class="code-yellow">  query.toString() ? `?${query.toString()}` : ""</span>
+<span class="code-yellow">}`</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User1"</span><span class="code-white">,</span>
+    <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"user1@bank.com"</span><span class="code-white">,</span>
+    <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"user"</span><span class="code-white">,</span>
+    <span class="code-red">"createdBy"</span><span class="code-white">: </span><span class="code-yellow">"699fd764dd531d0dcaf9ab66"</span><span class="code-white">,</span>
+    <span class="code-red">"isDeleted"</span><span class="code-white">: </span><span class="code-purple">false</span><span class="code-white">,</span>
+    <span class="code-red">"isActive"</span><span class="code-white">: </span><span class="code-purple">true</span><span class="code-white">,</span>
+    <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span><span class="code-white">,</span>
+    <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"+918888888888"</span><span class="code-white">,</span>
+    <span class="code-red">"aadharNumber"</span><span class="code-white">: </span><span class="code-yellow">"777788889999"</span><span class="code-white">,</span>
+    <span class="code-red">"address"</span><span class="code-white">: </span><span class="code-yellow">"Brodipet 6/13, Guntur"</span><span class="code-white">,</span>
+    <span class="code-red">"panNumber"</span><span class="code-white">: </span><span class="code-yellow">"EJPA458H2"</span><span class="code-white">,</span>
+    <span class="code-red">"firebaseUid"</span><span class="code-white">: </span><span class="code-yellow">"SkdkJZgwBFS68ZO7ATzot1R2s382"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Query parameters can be added dynamically to
+            fetch filtered user data.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      290
+VUS                 10
+Failed Requests     0%
+Avg Duration        306ms
+P(95) Duration      519ms
+Requests/sec        10.1</span></pre>
+        </div>
+
+        <h2>Deactivate User</h2>
+        <p>This endpoint allows the admin to deactivate a user by user ID.</p>
+
+        <div class="endpoint-title">
+            <span class="method patch">PATCH</span>
+            <span class="route">/api/admin/deactivate/:id</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/admin/deactivate/${id}`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PATCH"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"User deactivated successfully"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Replace <code>:id</code> with the actual user
+            ID to deactivate that user.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      45
+VUS                 10
+Failed Requests     0%
+Avg Duration        156ms
+P(95) Duration      200ms
+Requests/sec        4.2</span></pre>
+        </div>
+
+        <h2>Activate User</h2>
+        <p>This endpoint allows the admin to activate a user again by user ID.</p>
+
+        <div class="endpoint-title">
+            <span class="method patch">PATCH</span>
+            <span class="route">/api/admin/activate/:id</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/admin/activate/${id}`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PATCH"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"User activated successfully"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Replace <code>:id</code> with the actual user
+            ID to activate that user again.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      45
+VUS                 10
+Failed Requests     0%
+Avg Duration        163ms
+P(95) Duration      181ms
+Requests/sec        4.2</span></pre>
+        </div>
+
+        <h2>Agent Details</h2>
+        <p>This endpoint fetches detailed information about a specific agent, including user count, loan count, approved
+            loans, approval rate, and the users created by that agent.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/agent/:id/details</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">`http://localhost:5000/api/admin/agent/${id}/details`</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"totalUsers"</span><span class="code-white">: </span><span class="code-green">3</span><span class="code-white">,</span>
+  <span class="code-red">"totalLoans"</span><span class="code-white">: </span><span class="code-green">3</span><span class="code-white">,</span>
+  <span class="code-red">"approvedLoans"</span><span class="code-white">: </span><span class="code-green">2</span><span class="code-white">,</span>
+  <span class="code-red">"approvalRate"</span><span class="code-white">: </span><span class="code-yellow">"66.7"</span><span class="code-white">,</span>
+  <span class="code-red">"users"</span><span class="code-white">: [</span>
+    <span class="code-white">{</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69aeb8da08bd3b5d93d0ca7a"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Sam"</span><span class="code-white">,</span>
+      <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"sam@gmail.com"</span><span class="code-white">,</span>
+      <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"+919876543210"</span><span class="code-white">,</span>
+      <span class="code-red">"panNumber"</span><span class="code-white">: </span><span class="code-yellow">"EIJP786H2"</span><span class="code-white">,</span>
+      <span class="code-red">"aadharNumber"</span><span class="code-white">: </span><span class="code-yellow">"111122223333"</span><span class="code-white">,</span>
+      <span class="code-red">"address"</span><span class="code-white">: </span><span class="code-yellow">"AT. Agraharam, Guntur"</span><span class="code-white">,</span>
+      <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"user"</span><span class="code-white">,</span>
+      <span class="code-red">"isActive"</span><span class="code-white">: </span><span class="code-purple">true</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0003"</span>
+    <span class="code-white">}</span><span class="code-white">,</span>
+    <span class="code-red">...</span>
+  <span class="code-white">]</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Replace <code>:id</code> with the actual agent
+            ID to fetch that agent’s complete details and related users.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      257
+VUS                 10
+Failed Requests     0%
+Avg Duration        191ms
+P(95) Duration      208ms
+Requests/sec        8.3</span></pre>
+        </div>
+
+        <h2>Delete Agent</h2>
+        <p>This endpoint allows the admin to delete an agent by agent ID.</p>
+
+        <div class="endpoint-title">
+            <span class="method delete">DELETE</span>
+            <span class="route">/api/admin/agents/:id</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/admin/agents/${id}`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"DELETE"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Agent deleted successfully"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Replace <code>:id</code> with the actual agent
+            ID to delete that agent.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      133
+VUS                 5
+Failed Requests     0%
+Avg Duration        152ms
+P(95) Duration      174ms
+Requests/sec        4.2</span></pre>
+        </div>
+
+        <h2>Reset Agent Password</h2>
+        <p>This endpoint allows the admin to reset an agent password and receive the newly generated password.</p>
+
+        <div class="endpoint-title">
+            <span class="method patch">PATCH</span>
+            <span class="route">/api/admin/agents/:id/reset-password</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">`http://localhost:5000/api/admin/agents/${id}/reset-password`</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PATCH"</span><span class="code-white">,</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Password reset successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"newPassword"</span><span class="code-white">: </span><span class="code-yellow">"8byv3dad@A1"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires an admin JWT token. Replace <code>:id</code> with the actual agent
+            ID. The returned password should be shared securely because it is visible only at reset time.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      120
+VUS                 5
+Failed Requests     0%
+Avg Duration        278ms
+P(95) Duration      378ms
+Requests/sec        3.4</span></pre>
+        </div>
+
+        <h2>Get Admin Profile</h2>
+        <p>This endpoint fetches the currently logged-in admin profile details.</p>
+
+        <div class="endpoint-title">
+            <span class="method get">GET</span>
+            <span class="route">/api/admin/profile</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/profile"</span><span class="code-white">, {</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699ef3399e1cdb38eec7210d"</span><span class="code-white">,</span>
+  <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Admin"</span><span class="code-white">,</span>
+  <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"admin@bank.com"</span><span class="code-white">,</span>
+  <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"admin"</span><span class="code-white">,</span>
+  <span class="code-red">"createdBy"</span><span class="code-white">: </span><span class="code-purple">null</span><span class="code-white">,</span>
+  <span class="code-red">"isActive"</span><span class="code-white">: </span><span class="code-purple">true</span><span class="code-white">,</span>
+  <span class="code-red">"createdAt"</span><span class="code-white">: </span><span class="code-yellow">"2026-02-25T13:03:53.277Z"</span><span class="code-white">,</span>
+  <span class="code-red">"updatedAt"</span><span class="code-white">: </span><span class="code-yellow">"2026-03-09T07:40:27.523Z"</span><span class="code-white">,</span>
+  <span class="code-red">"isDeleted"</span><span class="code-white">: </span><span class="code-purple">false</span><span class="code-white">,</span>
+  <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"+919999999999"</span><span class="code-white">,</span>
+  <span class="code-red">"firebaseUid"</span><span class="code-white">: </span><span class="code-yellow">"YRq1lXjVsoMtNPzxxMYv3dI0nWf1"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. It returns the profile details of the
+            currently authenticated admin.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      280
+VUS                 10
+Failed Requests     0%
+Avg Duration        95.68ms
+P(95) Duration      106ms
+Requests/sec        9.04</span></pre>
+        </div>
+
+        <h2>Update Admin Profile</h2>
+        <p>This endpoint allows the admin to update profile details using form data sent as JSON.</p>
+
+        <div class="endpoint-title">
+            <span class="method put">PUT</span>
+            <span class="route">/api/admin/profile</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/profile"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">(</span><span class="code-purple">formData</span><span class="code-white">),</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Profile updated successfully"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The request body should contain the
+            updated admin profile fields in JSON format.
+        </p>
+
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      270
+VUS                 10
+Failed Requests     0%
+Avg Duration        127ms
+P(95) Duration      154ms
+Requests/sec        8.8</span></pre>
+        </div>
+
+        <h2>Change Admin Password</h2>
+        <p>This endpoint allows the admin to change the current account password by sending password data in JSON
+            format.</p>
+
+        <div class="endpoint-title">
+            <span class="method patch">PATCH</span>
+            <span class="route">/api/admin/change-password</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/admin/change-password"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PATCH"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">(</span><span class="code-purple">passwordData</span><span class="code-white">),</span>
+<span class="code-white">});</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Password changed successfully"</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. The request body should contain the
+            required password fields in JSON format.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      9
+VUS                 1
+Failed Requests     0%
+Avg Duration        197ms
+P(95) Duration      279ms
+Requests/sec        0.8</span></pre>
+        </div>
+
+        <h2>Assign Agent to Loan</h2>
+        <p>This endpoint allows the admin to assign an agent to a specific loan using the loan ID and selected agent ID.
+        </p>
+
+        <div class="endpoint-title">
+            <span class="method patch">PATCH</span>
+            <span class="route">/api/admin/loans/:loanId/assign-agent</span>
+        </div>
+
+        <div class="code-block">
+            <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">`http://localhost:5000/api/admin/loans/${loan.loanId}/assign-agent`</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PATCH"</span><span class="code-white">,</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+    <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({ </span><span class="code-red">agentId</span><span class="code-white">: </span><span class="code-purple">selectedAgent</span><span class="code-white"> }),</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+        </div>
+
+        <span class="label">👇 Output</span>
+
+        <div class="code-block">
+            <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan assigned successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"loan"</span><span class="code-white">: {</span>
+    <span class="code-red">"createdBy"</span><span class="code-white">: </span><span class="code-purple">null</span><span class="code-white">,</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69a034d84c789227ce413323"</span><span class="code-white">,</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0002"</span><span class="code-white">,</span>
+    <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0002"</span><span class="code-white">,</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69a034ad4c789227ce41330a"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User2"</span><span class="code-white">,</span>
+      <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0002"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"agentId"</span><span class="code-white">: {</span>
+      <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69bd0e97f30336efaee5a4cb"</span><span class="code-white">,</span>
+      <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Agent..."</span><span class="code-white">,</span>
+      <span class="code-red">"agentId"</span><span class="code-white">: </span><span class="code-yellow">"AGT0004"</span>
+    <span class="code-white">}</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+        </div>
+
+        <p class="important">
+            <b>Important:</b> This endpoint requires a valid admin JWT token. Replace <code>:loanId</code> with the
+            actual loan ID, and send the selected agent ID in the request body.
+        </p>
+        <h3>Performance Testing</h3>
+        <p>This block shows the load testing or API performance result for this endpoint.</p>
+
+        <div class="code-block">
+            <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      124
+VUS                 1
+Failed Requests     0%
+Avg Duration        238ms
+P(95) Duration      325ms
+Requests/sec        3.9</span></pre>
+        </div>
+
+    </div>
+</body>
+
+</html>
