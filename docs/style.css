@@ -213,3 +213,14 @@ p {
     font-size: 12px;
   }
 }
+.quick-links a,
+.container a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.quick-links a:hover,
+.container a:hover {
+  text-decoration: underline;
+}

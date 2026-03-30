@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer API Documentation</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="topbar">
+        Bank App API Documentation
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">Bank App API</div>
+        <ul class="nav-links">
+            <li><a href="./guide.html">Guide</a></li>
+            <li><a href="auth.html">Auth</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="agent.html" >Agent</a></li>
+            <li><a href="customer.html" class="active">Customer</a></li>
+            <li><a href="loans.html">Loans</a></li>
+
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Customer</h1>
+        <p>This page contains customer-only endpoints for profile, documents, and customer loan access.</p>
+
+        <h2>Apply Loan</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint allows the customer to apply for a loan and submit the loan application data.</p>
+
+<div class="endpoint-title">
+  <span class="method post">POST</span>
+  <span class="route">/api/loans/apply</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/loans/apply"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"POST"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-purple">data</span><span class="code-white">,</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan application submitted successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"loan"</span><span class="code-white">: {</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0009"</span><span class="code-white">,</span>
+    <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span><span class="code.white">,</span>
+    <span class="code-red">"userObjectId"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+    <span class="code-red">"agentId"</span><span class="code-white">: </span><span class="code-purple">null</span><span class="code-white">,</span>
+    <span class="code-red">"createdBy"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+    <span class="code-red">"createdByRole"</span><span class="code-white">: </span><span class="code-yellow">"user"</span><span class="code.white">,</span>
+    <span class="code-red">"loanDetails"</span><span class="code-white">: {</span>
+      <span class="code-red">"loanType"</span><span class="code-white">: </span><span class="code-yellow">"Home Loan"</span><span class="code.white">,</span>
+      <span class="code-red">"amount"</span><span class="code-white">: </span><span class="code-green">60000</span>
+    <span class="code-white">},</span>
+    <span class="code-red">...</span><span class="code-white">: </span><span class="code-yellow">"..."</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. The request body is sent as form data, and the backend creates a new loan application for the logged-in customer.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      196
+VUS                 50
+Failed Requests     0%
+Avg Response        7.41s
+P(95) Duration      13.03s
+Requests/sec        5.3</span></pre>
+</div>
+
+<h2>Get My Loans</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint fetches all loans belonging to the logged-in customer.</p>
+
+<div class="endpoint-title">
+  <span class="method get">GET</span>
+  <span class="route">/api/user/my-loans</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/user/my-loans"</span><span class="code-white">, {</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">[</span>
+  <span class="code-white">{</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69bd4105f30336efaee5a635"</span><span class="code-white">,</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0009"</span><span class="code-white">,</span>
+    <span class="code-red">"loanDetails"</span><span class="code-white">: {</span>
+      <span class="code-red">"loanType"</span><span class="code-white">: </span><span class="code-yellow">"Home Loan"</span><span class="code-white">,</span>
+      <span class="code-red">"amount"</span><span class="code-white">: </span><span class="code-green">60000</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"pending"</span><span class="code-white">,</span>
+    <span class="code-red">"remarks"</span><span class="code-white">: </span><span class="code-yellow">""</span><span class="code-white">,</span>
+    <span class="code-red">"createdAt"</span><span class="code-white">: </span><span class="code-yellow">"2026-03-20T12:43:49.071Z"</span>
+  <span class="code-white">}</span><span class="code-white">,</span>
+  <span class="code-red">...</span>
+<span class="code-white">]</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. It returns only the loans belonging to the currently logged-in customer.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1026
+VUS                 50
+Failed Requests     0%
+Avg Response        500.26ms
+P(95) Duration      1.39s
+Requests/sec        32.6</span></pre>
+</div>
+
+
+<h2>Get My Loan Details</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint fetches the complete details of a specific loan belonging to the logged-in customer.</p>
+
+<div class="endpoint-title">
+  <span class="method get">GET</span>
+  <span class="route">/api/user/my-loans/:loanId</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/user/my-loans/${loanId}`</span><span class="code-white">, {</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699feebf74e0522950c7fdfb"</span><span class="code-white">,</span>
+  <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0001"</span><span class="code-white">,</span>
+  <span class="code-red">"userObjectId"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+  <span class="code-red">"agentId"</span><span class="code-white">: </span><span class="code-yellow">"699fd764dd531d0dcaf9ab66"</span><span class="code-white">,</span>
+  <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"rejected"</span><span class="code-white">,</span>
+  <span class="code-red">"remarks"</span><span class="code-white">: </span><span class="code-yellow">"Loan details are not valid"</span><span class="code-white">,</span>
+  <span class="code-red">"loanDetails"</span><span class="code-white">: {</span>
+    <span class="code-red">"amount"</span><span class="code-white">: </span><span class="code-yellow">"600000"</span><span class="code-white">,</span>
+    <span class="code-red">"tenure"</span><span class="code-white">: </span><span class="code-green">24</span><span class="code-white">,</span>
+    <span class="code-red">"loanType"</span><span class="code-white">: </span><span class="code-yellow">"Home Loan"</span><span class="code-white">,</span>
+    <span class="code-red">"interestRate"</span><span class="code-white">: </span><span class="code-yellow">"5"</span><span class="code-white">,</span>
+    <span class="code-red">"tenureMonths"</span><span class="code-white">: </span><span class="code-yellow">"6"</span><span class="code-white">,</span>
+    <span class="code-red">"purpose"</span><span class="code-white">: </span><span class="code-yellow">"for home"</span>
+  <span class="code-white">},</span>
+  <span class="code-red">...</span><span class="code-white">: </span><span class="code-yellow">"..."</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. Replace <code>:loanId</code> with the actual loan ID to fetch that loan’s full details. It returns only loans that belong to the logged-in customer.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1374
+VUS                 50
+Failed Requests     0%
+Avg Response        112.98ms
+P(95) Duration      146.12ms
+Requests/sec        44.1</span></pre>
+</div>
+
+<h2>Get User Documents</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint fetches the uploaded customer documents such as PAN card and Aadhar card.</p>
+
+<div class="endpoint-title">
+  <span class="method get">GET</span>
+  <span class="route">/api/user/documents</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/user/documents"</span><span class="code-white">, {</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"documents"</span><span class="code-white">: {</span>
+    <span class="code-red">"panCard"</span><span class="code-white">: {</span>
+      <span class="code-red">"url"</span><span class="code-white">: </span><span class="code-yellow">"https://res.cloudinary.com/ddpubp94i/image/upload/v1774072299/bank-app/documents/1774072296616-pan%20card.jpg"</span><span class="code-white">,</span>
+      <span class="code-red">"public_id"</span><span class="code-white">: </span><span class="code-yellow">"bank-app/documents/1774072296616-pan card"</span><span class="code-white">,</span>
+      <span class="code-red">"filename"</span><span class="code-white">: </span><span class="code-yellow">"pan card.jpg"</span><span class="code-white">,</span>
+      <span class="code-red">"uploadedAt"</span><span class="code-white">: </span><span class="code-yellow">"2026-03-21T05:51:40.360Z"</span>
+    <span class="code-white">},</span>
+    <span class="code-red">"aadharCard"</span><span class="code-white">: </span><span class="code-purple">null</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. It returns the uploaded PAN and Aadhar document details for the currently logged-in customer.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1362
+VUS                 50
+Failed Requests     0%
+Avg Response        117.76ms
+P(95) Duration      218.62ms
+Requests/sec        43.8</span></pre>
+</div>
+
+
+<h2>Upload PAN Card</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint allows the customer to upload a PAN card document.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/user/documents/pan</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/user/documents/pan"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-purple">formData</span><span class="code-white">,</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"PAN card uploaded successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"document"</span><span class="code-white">: {</span>
+    <span class="code-red">"url"</span><span class="code-white">: </span><span class="code-yellow">"https://res.cloudinary.com/ddpubp94i/image/upload/v1774073928/bank-app/documents/1774073920987-1634734010836.jpg"</span><span class="code-white">,</span>
+    <span class="code-red">"public_id"</span><span class="code-white">: </span><span class="code-yellow">"bank-app/documents/1774073920987-1634734010836"</span><span class="code-white">,</span>
+    <span class="code-red">"filename"</span><span class="code-white">: </span><span class="code-yellow">"1634734010836.jpg"</span><span class="code-white">,</span>
+    <span class="code-red">"uploadedAt"</span><span class="code.white">: </span><span class="code-yellow">"2026-03-21T06:18:49.137Z"</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. Send the PAN card file using <code>formData</code> in the request body.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      517
+VUS                 50
+Failed Requests     0%
+Avg Response        2.02s
+P(95) Duration      3.88s
+Requests/sec        15.7</span></pre>
+</div>
+
+
+<h2>Upload Aadhar Card</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint allows the customer to upload an Aadhar card document.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/user/documents/aadhar</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/user/documents/aadhar"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-purple">formData</span><span class="code-white">,</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Aadhar card uploaded successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"document"</span><span class="code-white">: {</span>
+    <span class="code-red">"url"</span><span class="code-white">: </span><span class="code-yellow">"https://res.cloudinary.com/ddpubp94i/image/upload/v1774074020/bank-app/documents/1774074011879-1634734010836.jpg"</span><span class="code-white">,</span>
+    <span class="code-red">"public_id"</span><span class="code-white">: </span><span class="code-yellow">"bank-app/documents/1774074011879-1634734010836"</span><span class="code-white">,</span>
+    <span class="code-red">"filename"</span><span class="code-white">: </span><span class="code-yellow">"1634734010836.jpg"</span><span class="code-white">,</span>
+    <span class="code-red">"uploadedAt"</span><span class="code-white">: </span><span class="code-yellow">"2026-03-21T06:20:20.942Z"</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. Send the Aadhar card file using <code>formData</code> in the request body.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      449
+VUS                 50
+Failed Requests     0%
+Avg Response        2.5s
+P(95) Duration      5s
+Requests/sec        13.01</span></pre>
+</div>
+
+
+<h2>Update My Loan</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint allows the customer to update an existing loan application by loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/user/my-loans/:loanId</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/user/my-loans/${loanId}`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-purple">data</span><span class="code-white">,</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan updated successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"loan"</span><span class="code-white">: {</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0009"</span><span class="code-white">,</span>
+    <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"pending"</span><span class="code-white">,</span>
+    <span class="code-red">"loanDetails"</span><span class="code-white">: {</span>
+      <span class="code-red">"loanType"</span><span class="code-white">: </span><span class="code-yellow">"Home Loan"</span><span class="code-white">,</span>
+      <span class="code-red">"amount"</span><span class="code-white">: </span><span class="code-green">500000</span>
+    <span class="code-white">}</span><span class="code.white">,</span>
+    <span class="code-red">...</span><span class="code-white">: </span><span class="code-yellow">"..."</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. Replace <code>:loanId</code> with the actual loan ID, and send the updated loan data in the request body.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      203
+VUS                 50
+Failed Requests     0%
+Avg Response        7.05s
+P(95) Duration      12.85s
+Requests/sec        5.6</span></pre>
+</div>
+
+
+<h2>Get My Profile</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint fetches the profile details of the currently logged-in customer.</p>
+
+<div class="endpoint-title">
+  <span class="method get">GET</span>
+  <span class="route">/api/users/me</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/users/me"</span><span class="code-white">, {</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69bcefb6f30336efaee5a07e"</span><span class="code-white">,</span>
+  <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User."</span><span class="code-white">,</span>
+  <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"user12@example.com"</span><span class="code-white">,</span>
+  <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"9876543210"</span><span class="code-white">,</span>
+  <span class="code-red">"panNumber"</span><span class="code-white">: </span><span class="code-yellow">"ABCDE1234F"</span><span class="code-white">,</span>
+  <span class="code-red">"aadharNumber"</span><span class="code-white">: </span><span class="code-yellow">"123412341234"</span><span class="code-white">,</span>
+  <span class="code-red">"address"</span><span class="code-white">: </span><span class="code-yellow">"Guntur, Andhra Pradesh"</span><span class="code-white">,</span>
+  <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"user"</span><span class="code-white">,</span>
+  <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0005"</span><span class="code-white">,</span>
+  <span class="code-red">"createdAt"</span><span class="code-white">: </span><span class="code-yellow">"2026-03-20T06:56:54.548Z"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. It returns the profile information of the currently authenticated customer.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1693
+VUS                 100
+Failed Requests     0%
+Avg Response        806.66ms
+P(95) Duration      1.39s
+Requests/sec        54.1</span></pre>
+</div>
+
+
+<h2>Update My Profile</h2>
+<p><b>Role:</b> User</p>
+<p>This endpoint allows the customer to update profile details using JSON form data.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/users/me</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/users/me"</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">(</span><span class="code-purple">formData</span><span class="code-white">),</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Profile updated successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"user"</span><span class="code-white">: {</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69bcefb6f30336efaee5a07e"</span><span class="code-white">,</span>
+    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User."</span><span class="code-white">,</span>
+    <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"user12@example.com"</span><span class="code-white">,</span>
+    <span class="code-red">"password"</span><span class="code-white">: </span><span class="code-yellow">"$2b$10$SAFkpNGjnKtbA7naVBwEA.ANOkEW75qVyoITsp.LQh0trBXKQOljW"</span><span class="code-white">,</span>
+    <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"9876543210"</span><span class="code-white">,</span>
+    <span class="code-red">"panNumber"</span><span class="code-white">: </span><span class="code-yellow">"ABCDE1234F"</span><span class="code-white">,</span>
+    <span class="code-red">"aadharNumber"</span><span class="code-white">: </span><span class="code-yellow">"123412341234"</span><span class="code.white">,</span>
+    <span class="code-red">"address"</span><span class="code-white">: </span><span class="code-yellow">"Vijayawada, Andhra Pradesh"</span><span class="code.white">,</span>
+    <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"user"</span><span class="code.white">,</span>
+    <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0005"</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid user JWT token. Send the updated profile fields in the request body as JSON.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1084
+VUS                 100
+Failed Requests     0%
+Avg Response        1.86s
+P(95) Duration      3.02s
+Requests/sec        33.3</span></pre>
+</div>
+
+    </div>
+</body>
+</html>

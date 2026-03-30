@@ -1,6 +1,7 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { updateLoanStatus } from "../controllers/loanController.js";
 import { getAgentDashboard, getMyUsers, getAgentLoans, updateAgentProfile, resetUserPasswordByAgent, getAgentUserDetails, updateAgentUser } from "../controllers/agentController.js";
 
 
@@ -47,6 +48,13 @@ router.put("/users/:id",
   protect, 
   authorizeRoles("agent"), 
   updateAgentUser
+);
+
+router.patch(
+  "/loans/:loanId/status",
+  protect,
+  authorizeRoles("agent"),
+  updateLoanStatus
 );
 
 

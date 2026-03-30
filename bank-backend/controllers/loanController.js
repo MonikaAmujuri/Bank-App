@@ -1,6 +1,9 @@
 import Loan from "../models/Loan.js";
 import User from "../models/User.js";
+import { sendLoanSubmittedEmail } from "../utils/sendEmail.js";
 import { generateLoanId } from "../utils/generateLoanId.js";
+import { sendLoanAppliedEmail } from "../utils/sendEmail.js";
+import { sendLoanStatusEmail } from "../utils/sendEmail.js";
 
 export const startLoan = async (req, res) => {
   try {
@@ -23,11 +26,23 @@ export const startLoan = async (req, res) => {
       userId: user.userId,
       userObjectId: user._id,
       agentId: req.user._id,
+      createdBy: req.user._id,
+      createdByRole: "agent",
+
       kycDetails: {
         aadharNumber: user.aadharNumber || "",
         panNumber: user.panNumber || "",
         address: user.address || "",
       },
+
+      status: "draft",
+      statusHistory: [
+        {
+          status: "draft",
+          changedBy: req.user._id,
+          note: "Loan initiated and saved as draft",
+        },
+      ],
     });
 
     res.status(201).json({
@@ -42,6 +57,7 @@ export const startLoan = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const updateLoan = async (req, res) => {
   try {
     const { loanId } = req.params;
@@ -53,9 +69,9 @@ export const updateLoan = async (req, res) => {
       return res.status(404).json({ message: "Loan not found" });
     }
 
-    // If agent → only their loans
     if (
       req.user.role === "agent" &&
+      loan.agentId &&
       loan.agentId.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({ message: "Not allowed to update this loan" });
@@ -63,26 +79,36 @@ export const updateLoan = async (req, res) => {
 
     if (
       req.user.role === "agent" &&
-      !["draft", "pending"].includes(loan.status)
+      !["draft", "documents_pending"].includes(loan.status)
     ) {
-       return res.status(400).json({ message: "Loan cannot be edited now" });
-      }
+      return res.status(400).json({
+        message: "Only draft or documents pending loans can be edited",
+      });
+    }
 
     if (
       req.user.role === "admin" &&
-      !["draft", "pending", "approved"].includes(loan.status)
+      !["draft", "documents_pending"].includes(loan.status)
     ) {
-        return res.status(400).json({ message: "Loan cannot be edited now" });
-      }
+      return res.status(400).json({
+        message: "Only draft or documents pending loans can be edited",
+      });
+    }
 
-    // Allowed sections
+    if (
+      req.user.role === "user" &&
+      !["draft", "documents_pending"].includes(loan.status)
+    ) {
+      return res.status(400).json({
+        message: "Only draft or documents pending loans can be edited",
+      });
+    }
+
     const allowedSections = ["loanDetails", "employmentDetails", "kycDetails"];
 
     if (!allowedSections.includes(section)) {
       return res.status(400).json({ message: "Invalid section" });
     }
-
-    /* ================= VALIDATION START ================= */
 
     if (section === "loanDetails") {
       const { amount, loanType, interestRate, tenure } = data;
@@ -130,25 +156,15 @@ export const updateLoan = async (req, res) => {
       };
     }
 
-    /* ================= VALIDATION END ================= */
-
     loan[section] = {
       ...loan[section],
       ...normalizedData,
     };
 
     loan.markModified(section);
+    loan.lastModifiedBy = req.user._id;
 
-    if (req.user.role === "admin") {
-      loan.lastModifiedBy = req.user._id;
-    }
-
-    console.log("Saving section:", section);
-console.log("Updated data:", loan[section]);
     await loan.save();
-
-    const updatedLoan = await Loan.findOne({ loanId });
-console.log("Saved loan details:", updatedLoan[section]);
 
     res.status(200).json({
       message: `${section} updated successfully`,
@@ -165,7 +181,8 @@ console.log("Saved loan details:", updatedLoan[section]);
     const loan = await Loan.findOne({ loanId: req.params.loanId })
       .populate("lastModifiedBy", "name role")
       .populate("agentId", "name agentId")
-      .populate("userObjectId", "name userId");
+      .populate("userObjectId", "name userId")
+      .populate("statusHistory.changedBy", "name role");
 
     if (!loan) {
       return res.status(404).json({ message: "Loan not found" });
@@ -177,6 +194,7 @@ console.log("Saved loan details:", updatedLoan[section]);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const archiveLoan = async (req, res) => {
   try {
     const { loanId } = req.params;
@@ -232,17 +250,43 @@ export const submitLoan = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    if (!["draft", "pending"].includes(loan.status)) {
+    if (!["draft", "submitted"].includes(loan.status)) {
       return res.status(400).json({
-        message: "Only draft or pending loans can be submitted",
+        message: "Only draft or submitted loans can be moved to review",
       });
     }
 
-    loan.status = "approved";
+    loan.status = "under_review";
     loan.approvedBy = req.user._id;
+
+    loan.statusHistory.push({
+      status: "under_review",
+      changedBy: req.user._id,
+      note: "Loan moved to review stage by agent",
+      changedAt: new Date(),
+    });
+
     await loan.save();
 
-    res.json({ message: "Loan submitted successfully" });
+    try {
+      const user = await User.findById(loan.userObjectId);
+
+      if (user?.email) {
+        await sendLoanSubmittedEmail({
+          to: user.email,
+          name: user.name,
+          loanId: loan.loanId,
+        });
+      }
+    } catch (emailError) {
+      console.error("Email send failed:", emailError.message);
+    }
+
+    res.json({
+      message: "Loan moved to review successfully",
+      loanId: loan.loanId,
+      status: loan.status,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -261,14 +305,32 @@ export const rejectLoanByAgent = async (req, res) => {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    if (!["draft", "pending"].includes(loan.status)) {
+    if (!["submitted", "under_review", "documents_pending"].includes(loan.status)) {
       return res.status(400).json({
-        message: "Only draft or pending loans can be rejected",
+        message:
+          "Only submitted, under review, or documents pending loans can be rejected",
+      });
+    }
+
+    const remarks = req.body.remarks?.trim();
+
+    if (!remarks) {
+      return res.status(400).json({
+        message: "Rejection reason is required",
       });
     }
 
     loan.status = "rejected";
-    loan.remarks = req.body.remarks || "Rejected by agent";
+    loan.remarks = remarks;
+    loan.lastModifiedBy = req.user._id;
+
+    loan.statusHistory = loan.statusHistory || [];
+    loan.statusHistory.push({
+      status: "rejected",
+      changedBy: req.user._id,
+      note: remarks,
+      changedAt: new Date(),
+    });
 
     await loan.save();
 
@@ -345,7 +407,14 @@ export const applyLoan = async (req, res) => {
         payslips: files.payslips?.map((file) => file.path) || [],
       },
 
-      status: "pending",
+      status: "submitted",
+statusHistory: [
+  {
+    status: "submitted",
+    changedBy: req.user._id,
+    note: "Loan application submitted by user",
+  },
+],
     });
 
     user.documents = user.documents || {};
@@ -380,12 +449,107 @@ export const applyLoan = async (req, res) => {
 
     await user.save();
 
+    try {
+      const receiverEmail = user.email || email;
+
+      if (receiverEmail) {
+        await sendLoanAppliedEmail({
+          to: receiverEmail,
+          name: user.name || fullName,
+          loanId: loan.loanId,
+        });
+      }
+    } catch (emailError) {
+      console.error("Apply loan email failed:", emailError.message);
+    }
+
     res.status(201).json({
       message: "Loan application submitted successfully",
       loan,
     });
   } catch (error) {
     console.error("Apply loan error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+export const updateLoanStatus = async (req, res) => {
+  try {
+    const { loanId } = req.params;
+    const { status, note } = req.body;
+
+    const allowedStatuses = [
+      "draft",
+      "submitted",
+      "under_review",
+      "documents_pending",
+      "approved",
+      "rejected",
+      "disbursed",
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid loan status" });
+    }
+
+    if (!note || !note.trim()) {
+      return res.status(400).json({
+        message: "Note is required before updating loan status",
+      });
+    }
+
+    const loan = await Loan.findOne({ loanId });
+
+    if (!loan) {
+      return res.status(404).json({ message: "Loan not found" });
+    }
+
+    if (
+      req.user.role === "agent" &&
+      (!loan.agentId || loan.agentId.toString() !== req.user._id.toString())
+    ) {
+      return res.status(403).json({ message: "Not allowed to update this loan" });
+    }
+
+    loan.status = status;
+    loan.lastModifiedBy = req.user._id;
+
+    if (status === "approved") {
+      loan.approvedBy = req.user._id;
+    }
+
+    loan.statusHistory.push({
+      status,
+      changedBy: req.user._id,
+      note: note.trim(),
+      changedAt: new Date(),
+    });
+
+    await loan.save();
+
+    try {
+      const user = await User.findById(loan.userObjectId);
+
+      if (user?.email) {
+        await sendLoanStatusEmail({
+          to: user.email,
+          name: user.name,
+          loanId: loan.loanId,
+          status: loan.status,
+          note: note.trim(),
+        });
+      }
+    } catch (emailError) {
+      console.error("Status email send failed:", emailError.message);
+    }
+
+    res.json({
+      message: "Loan status updated successfully",
+      loanId: loan.loanId,
+      status: loan.status,
+      statusHistory: loan.statusHistory,
+    });
+  } catch (error) {
+    console.error("Update loan status error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

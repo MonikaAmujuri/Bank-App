@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent API Documentation</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="topbar">
+        Bank App API Documentation
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">Bank App API</div>
+        <ul class="nav-links">
+            <li><a href="./guide.html">Guide</a></li>
+            <li><a href="auth.html">Auth</a></li>
+            <li><a href="admin.html">Admin</a></li>
+            <li><a href="agent.html">Agent</a></li>
+            <li><a href="customer.html">Customer</a></li>
+            <li><a href="loans.html" class="active">Loans</a></li>
+
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Loan APIs</h1>
+        <p>This section contains loan-related endpoints used by the admin and agent to create, update, review, and manage loans.</p>
+
+        <h2>Start Loan</h2>
+<p>This endpoint allows the agent to start a new loan draft for a selected user.</p>
+
+<div class="endpoint-title">
+  <span class="method post">POST</span>
+  <span class="route">/api/loans/start</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">"http://localhost:5000/api/loans/start"</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"POST"</span><span class="code-white">,</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+    <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({ </span><span class="code-red">userId</span><span class="code-white"> }),</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan draft created"</span><span class="code-white">,</span>
+  <span class="code-red">"loan"</span><span class="code-white">: {</span>
+    <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0008"</span><span class="code-white">,</span>
+    <span class="code-red">"status"</span><span class="code-white">: </span><span class="code-yellow">"draft"</span>
+  <span class="code-white">}</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid agent JWT token. The request body must contain the selected user ID, and the backend creates a new loan in draft status.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      818
+VUS                 50
+Failed Requests     0%
+Avg Response        879.95ms
+P(95) Duration      1.8s
+Requests/sec        26.1</span></pre>
+</div>
+
+
+<h2>Update Loan - Loan Details</h2>
+<p><b>Role:</b> Agent</p>
+<p>This endpoint allows the agent to update a loan section such as loan details by loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/loans/:loanId</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/loans/${loanId}`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({</span>
+    <span class="code-red">section</span><span class="code-white">,</span>
+    <span class="code-red">data</span><span class="code-white">: </span><span class="code-purple">updatedData</span><span class="code-white">,</span>
+  <span class="code-white">}),</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"loanDetails updated successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0008"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid agent JWT token. Replace <code>:loanId</code> with the actual loan ID, and send the section name plus updated section data in the request body.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      822
+VUS                 50
+Failed Requests     0%
+Avg Response        861.37ms
+P(95) Duration      1.44s
+Requests/sec        26.3</span></pre>
+</div>
+
+<h2>Update Loan - Employement Details</h2>
+<p><b>Role:</b> Agent</p>
+<p>This endpoint allows the agent to update a Employement section such as company details by loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/loans/:loanId</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/loans/${loanId}`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({</span>
+    <span class="code-red">section</span><span class="code-white">,</span>
+    <span class="code-red">data</span><span class="code-white">: </span><span class="code-purple">updatedData</span><span class="code-white">,</span>
+  <span class="code-white">}),</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"employmentDetails updated successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0008"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid agent JWT token. Replace <code>:loanId</code> with the actual loan ID, and send the section name plus updated section data in the request body.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      807
+VUS                 50
+Failed Requests     0%
+Avg Response        890.3ms
+P(95) Duration      1.56s
+Requests/sec        25.8</span></pre>
+</div>
+
+<h2>Update Loan - KYC Details</h2>
+<p><b>Role:</b> Agent</p>
+<p>This endpoint allows the agent to update a KYC section such as company details by loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/loans/:loanId</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/loans/${loanId}`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({</span>
+    <span class="code-red">section</span><span class="code-white">,</span>
+    <span class="code-red">data</span><span class="code-white">: </span><span class="code-purple">updatedData</span><span class="code-white">,</span>
+  <span class="code-white">}),</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"kycDetails updated successfully"</span><span class="code-white">,</span>
+  <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0008"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid agent JWT token. Replace <code>:loanId</code> with the actual loan ID, and send the section name plus updated section data in the request body.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      813
+VUS                 50
+Failed Requests     0%
+Avg Response        872.03ms
+P(95) Duration      1.48s
+Requests/sec        26.03</span></pre>
+</div>
+
+<h2>Get Loan by ID</h2>
+<p><b>Role:</b> Agent &amp; Admin</p>
+<p>This endpoint fetches the complete details of a specific loan using the loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method get">GET</span>
+  <span class="route">/api/loans/:loanId</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/loans/${loanId}`</span><span class="code-white">, {</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${storedToken}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"69bd39b1f30336efaee5a5e0"</span><span class="code-white">,</span>
+  <span class="code-red">"loanId"</span><span class="code-white">: </span><span class="code-yellow">"LOAN0008"</span><span class="code-white">,</span>
+  <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span><span class="code-white">,</span>
+  <span class="code-red">"userObjectId"</span><span class="code-white">: {</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fed0474e0522950c7fde6"</span><span class="code-white">,</span>
+    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User1..."</span><span class="code-white">,</span>
+    <span class="code-red">"userId"</span><span class="code-white">: </span><span class="code-yellow">"USR0001"</span>
+  <span class="code-white">},</span>
+  <span class="code-red">"agentId"</span><span class="code-white">: {</span>
+    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699fd764dd531d0dcaf9ab66"</span><span class="code-white">,</span>
+    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Agent 1111"</span><span class="code-white">,</span>
+    <span class="code-red">"agentId"</span><span class="code-white">: </span><span class="code-yellow">"AGT0001"</span>
+  <span class="code-white">},</span>
+  <span class="code-red">"loanDetails"</span><span class="code-white">: {</span>
+    <span class="code-red">"loanType"</span><span class="code-white">: </span><span class="code-yellow">"Home Loan"</span><span class="code.white">,</span>
+    <span class="code-red">...</span><span class="code-white">: </span><span class="code-yellow">"..."</span>
+  <span class="code-white">},</span>
+  <span class="code-red">...</span><span class="code-white">: </span><span class="code-yellow">"..."</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid JWT token. Replace <code>:loanId</code> with the actual loan ID to fetch full loan details. It can be accessed by both admin and agent based on authorization.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      831
+VUS                 50
+Failed Requests     0%
+Avg Response        854.52ms
+P(95) Duration      1.5s
+Requests/sec        26.4</span></pre>
+</div>
+
+
+<h2>Archive Loan</h2>
+<p><b>Role:</b> Agent &amp; Admin</p>
+<p>This endpoint allows an agent or admin to archive a loan by loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method patch">PATCH</span>
+  <span class="route">/api/loans/:loanId/archive</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">`http://localhost:5000/api/loans/${loanId}/archive`</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PATCH"</span><span class="code-white">,</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan archived successfully"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid JWT token. Replace <code>:loanId</code> with the actual loan ID to archive that loan. It can be used by both admin and agent based on authorization.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1037
+VUS                 50
+Failed Requests     0%
+Avg Response        471.17ms
+P(95) Duration      1.13s
+Requests/sec        33.13</span></pre>
+</div>
+
+
+<h2>Restore Loan</h2>
+<p><b>Role:</b> Agent &amp; Admin</p>
+<p>This endpoint allows an agent or admin to restore a previously archived loan by loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method patch">PATCH</span>
+  <span class="route">/api/loans/:loanId/restore</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span>
+  <span class="code-yellow">`http://localhost:5000/api/loans/${loanId}/restore`</span><span class="code-white">,</span>
+  <span class="code-white">{</span>
+    <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PATCH"</span><span class="code-white">,</span>
+    <span class="code-red">headers</span><span class="code-white">: {</span>
+      <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+    <span class="code-white">},</span>
+  <span class="code-white">}</span>
+<span class="code-white">);</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan restored successfully"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid JWT token. Replace <code>:loanId</code> with the actual loan ID to restore that loan. It can be used by both admin and agent based on authorization.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1047
+VUS                 50
+Failed Requests     0%
+Avg Response        458.63ms
+P(95) Duration      1.06s
+Requests/sec        33.53</span></pre>
+</div>
+
+
+<h2>Submit Loan</h2>
+<p><b>Role:</b> Agent &amp; Admin</p>
+<p>This endpoint allows an agent or admin to submit a loan by loan ID.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/loans/:loanId/submit</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/loans/${loanId}/submit`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan submitted successfully"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid JWT token. Replace <code>:loanId</code> with the actual loan ID to submit that loan. It can be used by both admin and agent based on authorization.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1
+VUS                 1
+Failed Requests     0%
+Avg Response        143.81ms
+P(95) Duration      143.81ms
+Requests/sec        0.86</span></pre>
+</div>
+
+
+<h2>Reject Loan</h2>
+<p><b>Role:</b> Agent</p>
+<p>This endpoint allows the agent to reject a loan by loan ID and send remarks or reason in the request body.</p>
+
+<div class="endpoint-title">
+  <span class="method put">PUT</span>
+  <span class="route">/api/loans/:loanId/reject</span>
+</div>
+
+<div class="code-block">
+  <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">`http://localhost:5000/api/loans/${loanId}/reject`</span><span class="code-white">, {</span>
+  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"PUT"</span><span class="code-white">,</span>
+  <span class="code-red">headers</span><span class="code-white">: {</span>
+    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
+    <span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">`Bearer ${token}`</span><span class="code-white">,</span>
+  <span class="code-white">},</span>
+  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({ </span><span class="code-red">remarks</span><span class="code-white">: </span><span class="code-purple">reason</span><span class="code-white"> }),</span>
+<span class="code-white">});</span></pre>
+</div>
+
+<span class="label">👇 Output</span>
+
+<div class="code-block">
+  <pre><span class="code-white">{</span>
+  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Loan rejected successfully"</span>
+<span class="code-white">}</span></pre>
+</div>
+
+<p class="important">
+  <b>Important:</b> This endpoint requires a valid agent JWT token. Replace <code>:loanId</code> with the actual loan ID and send the rejection reason in the request body.
+</p>
+<h3>Performance Testing</h3>
+<p>This block shows the load testing or API performance result for this endpoint.</p>
+
+<div class="code-block">
+    <pre><span class="code-white">Metric              Value
+--------------------------------
+Total Requests      1
+VUS                 1
+Failed Requests     0%
+Avg Response        125.69ms
+P(95) Duration      125.69ms
+Requests/sec        0.87</span></pre>
+</div>
+
+    </div>
+</body>
+</html>

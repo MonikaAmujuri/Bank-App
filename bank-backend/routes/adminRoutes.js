@@ -8,6 +8,7 @@ import { deactivateUser, activateUser, deleteAgent, resetAgentPassword } from ".
 import { getAdminProfile, updateAdminProfile, changeAdminPassword } from "../controllers/adminController.js";
 import { createAgent } from "../controllers/userController.js";
 import { assignLoanToAgent } from "../controllers/adminController.js";
+import { updateLoanStatus } from "../controllers/loanController.js";
 
 const router = express.Router();
 
@@ -22,12 +23,6 @@ router.get(
   protect,
   authorizeRoles("admin"),
   getAllLoans
-);
-router.post(
-  "/create-agent",
-  protect,
-  authorizeRoles("admin"),
-  createAgent
 );
 router.post(
   "/create-agent",
@@ -99,6 +94,13 @@ router.patch(
   protect,
   authorizeRoles("admin"),
   assignLoanToAgent
+);
+
+router.patch(
+  "/loans/:loanId/status",
+  protect,
+  authorizeRoles("admin"),
+  updateLoanStatus
 );
 
 export default router;

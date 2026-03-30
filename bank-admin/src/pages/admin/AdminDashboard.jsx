@@ -22,6 +22,7 @@ const [activeStatusIndex, setActiveStatusIndex] = useState(0);
           draftLoans: 0,
           approvedLoans: 0,
           rejectedLoans: 0,
+          disbursedLoans: 0,
           homeLoans: 0,
           personalLoans: 0,
           educationLoans: 0,
@@ -83,8 +84,8 @@ const [activeStatusIndex, setActiveStatusIndex] = useState(0);
     {
       title: "Pending Loans",
       value: stats.pendingLoans || 0,
-      subtitle: "Awaiting review",
-      onClick: () => navigate("/admin/loans?status=pending"),
+      subtitle: "Applications in progress",
+      onClick: () => navigate("/admin/loans?status=in_progress"),
       color: "text-sky-600",
       bg: "bg-sky-50",
       icon: "⏳",
@@ -108,6 +109,15 @@ const [activeStatusIndex, setActiveStatusIndex] = useState(0);
       icon: "✅",
     },
     {
+      title: "Disbursed Loans",
+      value: stats.disbursedLoans || 0,
+      subtitle: "Completed applications",
+      onClick: () => navigate("/admin/loans?status=disbursed"),
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+      icon: "💸",
+    },
+    {
       title: "Rejected Loans",
       value: stats.rejectedLoans || 0,
       subtitle: "Declined applications",
@@ -115,7 +125,7 @@ const [activeStatusIndex, setActiveStatusIndex] = useState(0);
       color: "text-red-600",
       bg: "bg-red-50",
       icon: "❌",
-    }
+    }, 
   ];
 
   const loanTypeCards = [
@@ -157,10 +167,11 @@ const statusChartData = [
   { name: "Draft", value: stats.draftLoans || 0 },
   { name: "Approved", value: stats.approvedLoans || 0 },
   { name: "Rejected", value: stats.rejectedLoans || 0 },
+  { name: "Disbursed", value: stats.disbursedLoans || 0},
 ].filter((item) => item.value > 0);
 
 const overviewColors = ["#4F46E5", "#7C3AED", "#2563EB"];
-const statusColors = ["#0EA5E9", "#F59E0B", "#22C55E", "#EF4444"];
+const statusColors = ["#0EA5E9", "#F59E0B", "#22C55E", "#EF4444", "#10b981"];
 
 const renderPercentLabel = ({ percent }) =>
   `${(percent * 100).toFixed(0)}%`;
@@ -181,13 +192,15 @@ const handleStatusPieClick = (data) => {
   if (!data?.name) return;
 
   if (data.name === "Pending") {
-    navigate("/admin/loans?status=pending");
+    navigate("/admin/loans?status=in_progress");
   }else if (data.name === "Draft") {
     navigate("/admin/loans?status=draft");
   }else if (data.name === "Approved") {
     navigate("/admin/loans?status=approved");
   }else if (data.name === "Rejected") {
     navigate("/admin/loans?status=rejected");
+  }else if (data.name == "Disbursed") {
+    navigate("/admin/loans?status=disbursed");
   }
   };
 
@@ -267,7 +280,7 @@ const handleStatusPieClick = (data) => {
 
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={() => navigate("/admin/loans?status=pending")}
+              onClick={() => navigate("/admin/loans?status=in_progress")}
               className="rounded-xl bg-white px-5 py-3 font-medium text-indigo-700 transition hover:bg-indigo-50"
             >
               Review Pending Loans
@@ -566,7 +579,7 @@ const handleStatusPieClick = (data) => {
             </button>
 
             <button
-              onClick={() => navigate("/admin/loans?status=pending")}
+              onClick={() => navigate("/admin/loans?status=in_progress")}
               className="rounded-2xl bg-blue-50 px-4 py-4 text-left font-medium text-blue-700 transition hover:bg-blue-100"
             >
               Review Pending Loans

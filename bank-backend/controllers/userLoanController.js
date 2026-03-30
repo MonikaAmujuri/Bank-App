@@ -26,17 +26,19 @@ export const getMyLoanDetails = async (req, res) => {
     const loan = await Loan.findOne({
       loanId: req.params.loanId,
       userObjectId: req.user._id,
-      $or: [
-        { isArchived: false },
-        { isArchived: { $exists: false } },
-      ],
+      $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
     if (!loan) {
       return res.status(404).json({ message: "Loan not found" });
     }
 
-    res.status(200).json(loan);
+    const user = await User.findById(req.user._id).select("documents");
+
+    res.status(200).json({
+      ...loan.toObject(),
+      userDocuments: user?.documents || {},
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -88,7 +90,7 @@ export const uploadPanCard = async (req, res) => {
 
     const latestEditableLoan = await Loan.findOne({
       userObjectId: req.user._id,
-      status: { $in: ["draft", "pending"] },
+      status: { $in: ["draft", "documents_pending"] },
       $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     }).sort({ createdAt: -1 });
 
@@ -139,7 +141,7 @@ export const uploadAadharCard = async (req, res) => {
 
     const latestEditableLoan = await Loan.findOne({
       userObjectId: req.user._id,
-      status: { $in: ["draft", "pending"] },
+      status: { $in: ["draft", "documents_pending"] },
       $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     }).sort({ createdAt: -1 });
 
@@ -165,6 +167,7 @@ export const uploadAadharCard = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 export const updateMyLoan = async (req, res) => {
   try {
     const loan = await Loan.findOne({
@@ -177,11 +180,13 @@ export const updateMyLoan = async (req, res) => {
       return res.status(404).json({ message: "Loan not found" });
     }
 
-    if (!["draft", "pending"].includes(loan.status)) {
+    if (!["draft", "documents_pending"].includes(loan.status)) {
       return res.status(400).json({
-        message: "Only draft or pending loans can be edited",
+        message: "Only draft or documents pending loans can be edited",
       });
     }
+
+    const user = await User.findById(req.user._id);
 
     const {
       loanType,
@@ -198,66 +203,71 @@ export const updateMyLoan = async (req, res) => {
     const files = req.files || {};
 
     loan.loanDetails = {
-  ...loan.loanDetails,
-  loanType,
-  amount: Number(loanAmount),
-};
+      ...loan.loanDetails,
+      loanType,
+      amount: Number(loanAmount),
+    };
 
-loan.employmentDetails = {
-  ...loan.employmentDetails,
-  companyName,
-  location,
-  salary: Number(salary),
-  netHandSalary: Number(netHandSalary),
-};
+    loan.employmentDetails = {
+      ...loan.employmentDetails,
+      companyName,
+      location,
+      salary: Number(salary),
+      netHandSalary: Number(netHandSalary),
+    };
 
-const updatedKycDetails = {
-  ...loan.kycDetails,
-  panNumber,
-  aadharNumber: aadhaarNumber,
-  address,
-};
+    const updatedKycDetails = {
+      ...loan.kycDetails,
+      panNumber,
+      aadharNumber: aadhaarNumber,
+      address,
+    };
 
-if (files.panFile?.[0]) {
-  updatedKycDetails.panFile = files.panFile[0].path;
-  updatedKycDetails.panFilePublicId = files.panFile[0].filename;
-}
+    if (files.panFile?.[0]) {
+      updatedKycDetails.panFile = files.panFile[0].path;
+      updatedKycDetails.panFilePublicId = files.panFile[0].filename;
+    } else if (!updatedKycDetails.panFile && user?.documents?.panCard?.url) {
+      updatedKycDetails.panFile = user.documents.panCard.url;
+      updatedKycDetails.panFilePublicId = user.documents.panCard.public_id || "";
+    }
 
-if (files.aadhaarFile?.[0]) {
-  updatedKycDetails.aadhaarFile = files.aadhaarFile[0].path;
-  updatedKycDetails.aadhaarFilePublicId = files.aadhaarFile[0].filename;
-}
+    if (files.aadhaarFile?.[0]) {
+      updatedKycDetails.aadhaarFile = files.aadhaarFile[0].path;
+      updatedKycDetails.aadhaarFilePublicId = files.aadhaarFile[0].filename;
+    } else if (!updatedKycDetails.aadhaarFile && user?.documents?.aadharCard?.url) {
+      updatedKycDetails.aadhaarFile = user.documents.aadharCard.url;
+      updatedKycDetails.aadhaarFilePublicId =
+        user.documents.aadharCard.public_id || "";
+    }
 
-if (files.bankStatements?.length) {
-  updatedKycDetails.bankStatements = files.bankStatements.map((file) => file.path);
-  updatedKycDetails.bankStatementsPublicIds = files.bankStatements.map(
-    (file) => file.filename
-  );
-}
+    if (files.bankStatements?.length) {
+      updatedKycDetails.bankStatements = files.bankStatements.map((file) => file.path);
+      updatedKycDetails.bankStatementsPublicIds = files.bankStatements.map(
+        (file) => file.filename
+      );
+    }
 
-if (files.itReturns?.length) {
-  updatedKycDetails.itReturns = files.itReturns.map((file) => file.path);
-  updatedKycDetails.itReturnsPublicIds = files.itReturns.map(
-    (file) => file.filename
-  );
-}
+    if (files.itReturns?.length) {
+      updatedKycDetails.itReturns = files.itReturns.map((file) => file.path);
+      updatedKycDetails.itReturnsPublicIds = files.itReturns.map(
+        (file) => file.filename
+      );
+    }
 
-if (files.payslips?.length) {
-  updatedKycDetails.payslips = files.payslips.map((file) => file.path);
-  updatedKycDetails.payslipsPublicIds = files.payslips.map(
-    (file) => file.filename
-  );
-}
+    if (files.payslips?.length) {
+      updatedKycDetails.payslips = files.payslips.map((file) => file.path);
+      updatedKycDetails.payslipsPublicIds = files.payslips.map(
+        (file) => file.filename
+      );
+    }
 
-loan.kycDetails = updatedKycDetails;
+    loan.kycDetails = updatedKycDetails;
 
-loan.markModified("loanDetails");
-loan.markModified("employmentDetails");
-loan.markModified("kycDetails");
+    loan.markModified("loanDetails");
+    loan.markModified("employmentDetails");
+    loan.markModified("kycDetails");
 
     await loan.save();
-
-    const user = await User.findById(req.user._id);
 
     if (user) {
       if (panNumber) user.panNumber = panNumber;
@@ -267,22 +277,22 @@ loan.markModified("kycDetails");
       user.documents = user.documents || {};
 
       if (files.panFile?.[0]) {
-  user.documents.panCard = {
-    url: files.panFile[0].path,
-    public_id: files.panFile[0].filename,
-    filename: files.panFile[0].originalname,
-    uploadedAt: new Date(),
-  };
-}
+        user.documents.panCard = {
+          url: files.panFile[0].path,
+          public_id: files.panFile[0].filename,
+          filename: files.panFile[0].originalname,
+          uploadedAt: new Date(),
+        };
+      }
 
-if (files.aadhaarFile?.[0]) {
-  user.documents.aadharCard = {
-    url: files.aadhaarFile[0].path,
-    public_id: files.aadhaarFile[0].filename,
-    filename: files.aadhaarFile[0].originalname,
-    uploadedAt: new Date(),
-  };
-}
+      if (files.aadhaarFile?.[0]) {
+        user.documents.aadharCard = {
+          url: files.aadhaarFile[0].path,
+          public_id: files.aadhaarFile[0].filename,
+          filename: files.aadhaarFile[0].originalname,
+          uploadedAt: new Date(),
+        };
+      }
 
       await user.save();
     }

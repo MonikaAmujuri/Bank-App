@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 const AdminLoanDetails = () => {
@@ -15,6 +14,12 @@ const AdminLoanDetails = () => {
   const [assigning, setAssigning] = useState(false);
   const [assignMessage, setAssignMessage] = useState("");
   const [assignError, setAssignError] = useState("");
+
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusError, setStatusError] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [statusNote, setStatusNote] = useState("");
 
   useEffect(() => {
     if (!token) return;
@@ -40,6 +45,7 @@ const AdminLoanDetails = () => {
       setLoan(data);
       setEditedLoan(data);
       setSelectedAgent(data.agentId?._id || "");
+      setSelectedStatus(data.status || "");
     } catch (error) {
       console.error(error);
       setLoan(null);
@@ -140,20 +146,207 @@ const AdminLoanDetails = () => {
     }
   };
 
+  const handleUpdateStatus = async () => {
+  if (!selectedStatus) {
+    setStatusError("Please select a status");
+    return;
+  }
+
+  if (!statusNote.trim()) {
+    setStatusError("Please enter a note before updating the status");
+    return;
+  }
+
+  try {
+    setStatusUpdating(true);
+    setStatusError("");
+    setStatusMessage("");
+
+    const res = await fetch(
+      `http://localhost:5000/api/admin/loans/${loan.loanId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          status: selectedStatus,
+          note: statusNote.trim(),
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to update status");
+    }
+
+    setStatusMessage("Loan status updated successfully");
+    setStatusNote("");
+    setSelectedStatus("");
+    await fetchLoan();
+  } catch (error) {
+    console.error(error);
+    setStatusError(error.message || "Something went wrong");
+  } finally {
+    setStatusUpdating(false);
+  }
+};
+
   const getStatusClasses = (status) => {
     switch (status) {
+      case "draft":
+        return "bg-gray-100 text-gray-700";
+      case "submitted":
+        return "bg-blue-100 text-blue-700";
+      case "under_review":
+        return "bg-yellow-100 text-yellow-700";
+      case "documents_pending":
+        return "bg-orange-100 text-orange-700";
       case "approved":
         return "bg-green-100 text-green-700";
-      case "pending":
-        return "bg-blue-100 text-blue-700";
-      case "draft":
-        return "bg-yellow-100 text-yellow-700";
       case "rejected":
         return "bg-red-100 text-red-700";
+      case "disbursed":
+        return "bg-emerald-100 text-emerald-700";
+      case "pending":
+        return "bg-blue-100 text-blue-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
   };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "draft":
+        return "Draft";
+      case "submitted":
+        return "Submitted";
+      case "under_review":
+        return "Under Review";
+      case "documents_pending":
+        return "Documents Pending";
+      case "approved":
+        return "Approved";
+      case "rejected":
+        return "Rejected";
+      case "disbursed":
+        return "Disbursed";
+      case "pending":
+        return "Pending";
+      default:
+        return status || "-";
+    }
+  };
+
+  const timelineHistory =
+    loan?.statusHistory?.length > 0
+      ? loan.statusHistory
+      : loan
+      ? [
+          {
+            status: loan.status,
+            note: "Current loan status",
+            changedAt: loan.updatedAt || loan.createdAt,
+          },
+        ]
+      : [];
+
+  const getEffectiveStatus = (status) => {
+  if (status === "pending") return "submitted";
+  if (status === "modified") return "documents_pending";
+  return status;
+};
+
+const getLoanStages = (status) => {
+  const effectiveStatus = getEffectiveStatus(status);
+
+  const baseStages = [
+    { key: "draft", label: "Draft" },
+    { key: "submitted", label: "Submitted" },
+    { key: "under_review", label: "Under Review" },
+    { key: "documents_pending", label: "Documents Pending" },
+  ];
+
+  if (effectiveStatus === "rejected") {
+    return [...baseStages, { key: "rejected", label: "Rejected" }];
+  }
+
+  return [
+    ...baseStages,
+    { key: "approved", label: "Approved" },
+    { key: "disbursed", label: "Disbursed" },
+  ];
+};
+
+const currentStatus = getEffectiveStatus(loan?.status);
+const loanStages = getLoanStages(currentStatus);
+
+const currentStageIndex = loanStages.findIndex(
+  (stage) => stage.key === currentStatus
+);
+
+const fullTimeline = loanStages.map((stage, index) => {
+  const historyItem = timelineHistory.find(
+    (item) => getEffectiveStatus(item.status) === stage.key
+  );
+
+  let state = "upcoming";
+
+  if (index < currentStageIndex) {
+    state = "completed";
+  } else if (index === currentStageIndex) {
+    state = "current";
+  }
+
+  return {
+    ...stage,
+    state,
+    note: historyItem?.note || "",
+    changedAt: historyItem?.changedAt || "",
+    changedBy: historyItem?.changedBy || null,
+  };
+});
+
+const getHorizontalStageClasses = (state) => {
+  if (state === "completed") {
+    return "border-green-200 bg-green-50 text-green-700";
+  }
+  if (state === "current") {
+    return "border-indigo-200 bg-indigo-50 text-indigo-700";
+  }
+  return "border-gray-200 bg-white text-gray-500";
+};
+
+const getHorizontalDotClasses = (state, key) => {
+  if (state === "completed") return "bg-green-500";
+  if (state === "upcoming") return "bg-gray-300";
+
+  switch (key) {
+    case "draft":
+      return "bg-gray-500";
+    case "submitted":
+      return "bg-blue-500";
+    case "under_review":
+      return "bg-yellow-500";
+    case "documents_pending":
+      return "bg-orange-500";
+    case "approved":
+      return "bg-green-500";
+    case "rejected":
+      return "bg-red-500";
+    case "disbursed":
+      return "bg-emerald-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
+const getConnectorClasses = (index) => {
+  return index < currentStageIndex ? "bg-green-400" : "bg-gray-200";
+};
 
   if (!loan || !editedLoan) {
     return (
@@ -165,7 +358,6 @@ const AdminLoanDetails = () => {
 
   return (
     <div className="space-y-8">
-      {/* Hero */}
       <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -207,7 +399,6 @@ const AdminLoanDetails = () => {
         </div>
       </section>
 
-      {/* Top summary */}
       <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-3xl bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-gray-500">Status</p>
@@ -217,7 +408,7 @@ const AdminLoanDetails = () => {
                 loan.status
               )}`}
             >
-              {loan.status}
+              {getStatusLabel(loan.status)}
             </span>
           </div>
         </div>
@@ -246,7 +437,6 @@ const AdminLoanDetails = () => {
         </div>
       </section>
 
-      {/* Assign Agent */}
       <section className="rounded-3xl bg-white p-6 shadow-sm">
         <div className="mb-5">
           <h2 className="text-2xl font-semibold text-gray-900">Assign Agent</h2>
@@ -302,9 +492,157 @@ const AdminLoanDetails = () => {
         </div>
       </section>
 
-      {/* View mode */}
+      <section className="rounded-3xl bg-white p-6 shadow-sm">
+        <div className="mb-5">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Loan Status Management
+          </h2>
+          <p className="mt-1 text-gray-500">
+            Update the loan processing stage and add an internal note for the
+            timeline.
+          </p>
+        </div>
+
+        <p className="mb-4 text-sm text-gray-600">
+          Current Status:{" "}
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
+              loan.status
+            )}`}
+          >
+            {getStatusLabel(loan.status)}
+          </span>
+        </p>
+
+        {statusError && (
+          <div className="mb-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+            {statusError}
+          </div>
+        )}
+
+        {statusMessage && (
+          <div className="mb-4 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
+            {statusMessage}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Select Status
+            </label>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-indigo-500"
+            >
+              <option value="">Select Status</option>
+              <option value="draft">Draft</option>
+              <option value="submitted">Submitted</option>
+              <option value="under_review">Under Review</option>
+              <option value="documents_pending">
+                Documents Pending 
+              </option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected </option>
+              <option value="disbursed">Disbursed </option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Note <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={statusNote}
+              onChange={(e) => setStatusNote(e.target.value)}
+              placeholder="Enter reason / note for this status update"
+              className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <button
+            onClick={handleUpdateStatus}
+            disabled={statusUpdating}
+            className="rounded-xl bg-indigo-600 px-5 py-3 font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {statusUpdating ? "Updating..." : "Update Status"}
+          </button>
+        </div>
+      </section>
+
       {!editing && (
         <>
+          <section className="rounded-3xl bg-white p-6 shadow-sm">
+  <div className="mb-6 flex items-center justify-between">
+    <h2 className="text-2xl font-semibold text-gray-900">Loan Timeline</h2>
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
+        loan?.status
+      )}`}
+    >
+      {getStatusLabel(loan?.status)}
+    </span>
+  </div>
+
+  <div className="overflow-x-auto">
+    <div className="min-w-[950px]">
+      <div className="relative flex items-start justify-between px-4 pt-6">
+        {fullTimeline.map((item, index) => (
+          <div
+            key={item.key}
+            className="relative flex flex-1 flex-col items-center"
+          >
+            {index !== fullTimeline.length - 1 && (
+              <div
+                className={`absolute left-1/2 top-[18px] h-1 w-full ${getConnectorClasses(
+                  index
+                )}`}
+              ></div>
+            )}
+
+            <div
+              className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 border-white shadow-sm ${getHorizontalDotClasses(
+                item.state,
+                item.key
+              )}`}
+            >
+              <div className="h-2.5 w-2.5 rounded-full bg-white"></div>
+            </div>
+
+            <div
+              className={`mt-4 w-[150px] rounded-2xl border p-4 text-center ${getHorizontalStageClasses(
+                item.state
+              )}`}
+            >
+              <h3 className="text-sm font-semibold leading-5">{item.label}</h3>
+
+              <p className="mt-2 text-xs font-medium">
+                {item.state === "completed" && "Completed"}
+                {item.state === "current" && "Current Stage"}
+                {item.state === "upcoming" && "Upcoming"}
+              </p>
+
+              <p className="mt-2 min-h-[32px] text-[11px] leading-4 text-gray-500">
+                {item.note || "—"}
+              </p>
+
+              <p className="mt-2 text-[11px] text-gray-400">
+                {item.changedAt
+                  ? new Date(item.changedAt).toLocaleDateString()
+                  : "-"}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
           {loan.loanDetails && (
             <section className="rounded-3xl bg-white p-6 shadow-sm">
               <h2 className="mb-5 text-2xl font-semibold text-gray-900">
@@ -530,7 +868,6 @@ const AdminLoanDetails = () => {
         </>
       )}
 
-      {/* Edit mode */}
       {editing && (
         <>
           <section className="rounded-3xl bg-white p-6 shadow-sm">

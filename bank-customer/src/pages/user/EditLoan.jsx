@@ -168,7 +168,7 @@ const EditLoan = () => {
   }
 };
 
-  const editable = ["draft", "pending"].includes(status);
+  const editable = ["draft", "documents_pending"].includes(status);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">

@@ -6,6 +6,7 @@ const MyApplications = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
 
   const fetchApplications = async () => {
     try {
@@ -43,18 +44,49 @@ const MyApplications = () => {
     fetchApplications();
   }, []);
 
-  const getStatusStyle = (status) => {
-    if (status === "approved") {
-      return "bg-green-100 text-green-700";
-    }
-    if (status === "rejected") {
-      return "bg-red-100 text-red-700";
-    }
-    if (status === "draft") {
+  const getCustomerStatusStyle = (status) => {
+  switch (status) {
+    case "draft":
       return "bg-gray-100 text-gray-700";
-    }
-    return "bg-yellow-100 text-yellow-700";
-  };
+    case "submitted":
+      return "bg-blue-100 text-blue-700";
+    case "under_review":
+      return "bg-orange-100 text-orange-700";
+    case "documents_pending":
+      return "bg-purple-100 text-purple-700";
+    case "approved":
+      return "bg-green-100 text-green-700";
+    case "rejected":
+      return "bg-red-100 text-red-700";
+    case "disbursed":
+      return "bg-emerald-100 text-emerald-700";
+    default:
+      return "bg-yellow-100 text-yellow-700";
+  }
+};
+
+const getCustomerStatusLabel = (status) => {
+  switch (status) {
+    case "draft":
+      return "Draft";
+    case "submitted":
+      return "Submitted";
+    case "under_review":
+      return "Under Review";
+    case "documents_pending":
+      return "Documents Pending";
+    case "approved":
+      return "Approved";
+    case "rejected":
+      return "Rejected";
+    case "disbursed":
+      return "Disbursed";
+    case "pending":
+      return "Submitted";
+    default:
+      return status || "-";
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -147,11 +179,11 @@ const MyApplications = () => {
                     </div>
 
                     <span
-                      className={`inline-flex rounded-full px-4 py-2 text-sm font-medium capitalize ${getStatusStyle(
-                        app.status
+                    className={`inline-flex rounded-full px-4 py-2 text-sm font-medium ${getCustomerStatusStyle(
+                      app.status
                       )}`}
                     >
-                      {app.status}
+                      {getCustomerStatusLabel(app.status)}
                     </span>
                   </div>
 

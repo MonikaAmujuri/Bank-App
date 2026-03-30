@@ -16,41 +16,41 @@ const AdminLoans = () => {
   const [activeLoanTypeIndex, setActiveLoanTypeIndex] = useState(0);
 
   const fetchLoans = async () => {
-  try {
-    const query = new URLSearchParams();
+    try {
+      const query = new URLSearchParams();
 
-    query.append("all", "true");
+      query.append("all", "true");
 
-    if (loanTypeFilter) {
-      query.append("loanType", loanTypeFilter);
+      if (loanTypeFilter) {
+        query.append("loanType", loanTypeFilter);
+      }
+
+      if (statusFilter === "in_progress") {
+        query.append("status", "in_progress");
+      } else if (statusFilter) {
+        query.append("status", statusFilter);
+      }
+
+      const url = `http://localhost:5000/api/admin/loans?${query.toString()}`;
+
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      setLoans(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error(error);
     }
-
-    if (statusFilter) {
-      query.append("status", statusFilter);
-    }
-
-    const url = `http://localhost:5000/api/admin/loans?${
-      query.toString()
-    }`;
-
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await res.json();
-    setLoans(Array.isArray(data) ? data : []);
-  } catch (error) {
-    console.error(error);
-  }
-};
+  };
 
   useEffect(() => {
-  if (token) {
-    fetchLoans();
-  }
-}, [token, loanTypeFilter, statusFilter]);
+    if (token) {
+      fetchLoans();
+    }
+  }, [token, loanTypeFilter, statusFilter]);
 
   const handleArchive = async (loanId, e) => {
     e.stopPropagation();
@@ -92,133 +92,220 @@ const AdminLoans = () => {
     }
   };
 
+  const formatStatusLabel = (status) => {
+    switch (status) {
+      case "draft":
+        return "Draft";
+      case "submitted":
+        return "Submitted";
+      case "under_review":
+        return "Under Review";
+      case "documents_pending":
+        return "Documents Pending";
+      case "approved":
+        return "Approved";
+      case "rejected":
+        return "Rejected";
+      case "disbursed":
+        return "Disbursed";
+      case "pending":
+        return "Pending";
+      default:
+        return status || "-";
+    }
+  };
+
   const pageTitle = loanTypeFilter
     ? `${loanTypeFilter}`
     : statusFilter
-    ? `${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Loans`
+    ? `${formatStatusLabel(statusFilter)} Loans`
     : "Loans";
 
   const pageSubtitle = loanTypeFilter
     ? `Showing all ${loanTypeFilter.toLowerCase()} applications.`
+    : statusFilter === "in_progress"
+    ? "Showing all loans currently in progress."
     : statusFilter
-    ? `Showing all ${statusFilter.toLowerCase()} loan applications.`
+    ? `Showing all ${formatStatusLabel(statusFilter).toLowerCase()} loan applications.`
     : "Manage submitted loans, review statuses, and track assigned agents.";
 
   const loanTypeChartMap = loans.reduce((acc, loan) => {
-  const type = loan.loanDetails?.loanType || "Unspecified";
-  acc[type] = (acc[type] || 0) + 1;
-  return acc;
-}, {});
+    const type = loan.loanDetails?.loanType || "Unspecified";
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
 
-const loanTypeChartData = Object.entries(loanTypeChartMap).map(
-  ([name, value]) => ({
-    name,
-    value,
-  })
-);
-
-const loanTypeChartColors = [
-  "#2563EB", // Home / first
-  "#7C3AED", // Unknown
-  "#F59E0B", // Business
-  "#22C55E", // Education
-  "#EF4444", // Personal
-  "#0EA5E9", // Vehicle
-];
-
-const totalLoanTypeValue = loanTypeChartData.reduce(
-  (sum, item) => sum + item.value,
-  0
-);
-
-const renderPercentLabel = ({ percent }) =>
-  `${(percent * 100).toFixed(0)}%`;
-
-const renderActiveShape = (props) => {
-  const {
-    cx,
-    cy,
-    innerRadius,
-    outerRadius,
-    startAngle,
-    endAngle,
-    fill,
-    payload,
-    percent,
-    value,
-  } = props;
-
-  return (
-    <g>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 10}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={outerRadius + 13}
-        outerRadius={outerRadius + 19}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        opacity={0.18}
-      />
-      <text
-        x={cx}
-        y={cy - 6}
-        textAnchor="middle"
-        fill="#111827"
-        className="text-sm font-semibold"
-      >
-        {payload.name}
-      </text>
-      <text
-        x={cx}
-        y={cy + 16}
-        textAnchor="middle"
-        fill="#6B7280"
-        className="text-xs"
-      >
-        {value} ({(percent * 100).toFixed(1)}%)
-      </text>
-    </g>
+  const loanTypeChartData = Object.entries(loanTypeChartMap).map(
+    ([name, value]) => ({
+      name,
+      value,
+    })
   );
-};
 
-const handleLoanTypePieClick = (data) => {
-  if (!data?.name) return;
+  const loanTypeChartColors = [
+    "#2563EB",
+    "#7C3AED",
+    "#F59E0B",
+    "#22C55E",
+    "#EF4444",
+    "#0EA5E9",
+  ];
 
-  if (data.name === "Unspecified") {
-    navigate("/admin/loans?loanType=Unspecified");
-  } else {
-    navigate(`/admin/loans?loanType=${encodeURIComponent(data.name)}`);
-  }
-};
+  const totalLoanTypeValue = loanTypeChartData.reduce(
+    (sum, item) => sum + item.value,
+    0
+  );
 
-  const getStatusClasses = (status) => {
+  const renderPercentLabel = ({ percent }) =>
+    `${(percent * 100).toFixed(0)}%`;
+
+  const renderActiveShape = (props) => {
+    const {
+      cx,
+      cy,
+      innerRadius,
+      outerRadius,
+      startAngle,
+      endAngle,
+      fill,
+      payload,
+      percent,
+      value,
+    } = props;
+
+    return (
+      <g>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 10}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={outerRadius + 13}
+          outerRadius={outerRadius + 19}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          opacity={0.18}
+        />
+        <text
+          x={cx}
+          y={cy - 6}
+          textAnchor="middle"
+          fill="#111827"
+          className="text-sm font-semibold"
+        >
+          {payload.name}
+        </text>
+        <text
+          x={cx}
+          y={cy + 16}
+          textAnchor="middle"
+          fill="#6B7280"
+          className="text-xs"
+        >
+          {value} ({(percent * 100).toFixed(1)}%)
+        </text>
+      </g>
+    );
+  };
+
+  const handleLoanTypePieClick = (data) => {
+    if (!data?.name) return;
+
+    if (data.name === "Unspecified") {
+      navigate("/admin/loans?loanType=Unspecified");
+    } else {
+      navigate(`/admin/loans?loanType=${encodeURIComponent(data.name)}`);
+    }
+  };
+
+  const getStatusBadge = (status) => {
     switch (status) {
       case "approved":
-        return "bg-green-100 text-green-700";
-      case "pending":
-        return "bg-blue-100 text-blue-700";
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+            Approved
+          </span>
+        );
+
       case "draft":
-        return "bg-yellow-100 text-yellow-700";
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">
+            Draft
+          </span>
+        );
+
+      case "submitted":
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+            Submitted
+          </span>
+        );
+
+      case "under_review":
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-full">
+            Under Review
+          </span>
+        );
+
+      case "documents_pending":
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+            Documents Pending
+          </span>
+        );
+
       case "rejected":
-        return "bg-red-100 text-red-700";
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+            Rejected
+          </span>
+        );
+
+      case "disbursed":
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 rounded-full">
+            Disbursed
+          </span>
+        );
+
+      case "pending":
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+            Pending
+          </span>
+        );
+
       default:
-        return "bg-gray-100 text-gray-700";
+        return (
+          <span className="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full capitalize">
+            {status || "-"}
+          </span>
+        );
     }
+  };
+
+  const formatAmount = (amount) => {
+    const numericAmount = Number(amount);
+    if (Number.isNaN(numericAmount)) return "₹0";
+    return `₹${numericAmount.toLocaleString("en-IN")}`;
+  };
+
+  const formatLoanType = (loanType) => {
+    if (!loanType) return "-";
+    return loanType;
   };
 
   return (
     <div className="space-y-8">
-      {/* Hero */}
       <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -231,11 +318,11 @@ const handleLoanTypePieClick = (data) => {
 
           <div className="flex flex-wrap gap-3">
             {(loanTypeFilter || statusFilter) && (
-            <button
-            onClick={() => navigate("/admin/loans")}
-            className="rounded-xl border border-white/40 px-5 py-3 font-medium text-white transition hover:bg-white/10"
-            >
-              Clear Filter
+              <button
+                onClick={() => navigate("/admin/loans")}
+                className="rounded-xl border border-white/40 px-5 py-3 font-medium text-white transition hover:bg-white/10"
+              >
+                Clear Filter
               </button>
             )}
             <button
@@ -249,137 +336,134 @@ const handleLoanTypePieClick = (data) => {
       </section>
 
       <section>
-  <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-    <div>
-      <h2 className="text-2xl font-semibold text-gray-900">Loan Summary</h2>
-      <p className="mt-1 text-gray-500">
-        Overview of current records and loan type distribution.
-      </p>
-    </div>
-
-    <button
-      onClick={() => setShowChart(!showChart)}
-      className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
-    >
-      {showChart ? "Show Cards" : "Show Loan Type Chart"}
-    </button>
-  </div>
-
-  {!showChart ? (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-      <div className="rounded-3xl bg-white p-6 shadow-sm">
-        <p className="text-sm font-medium text-gray-500">Current View</p>
-        <h3 className="mt-2 text-2xl font-bold text-gray-900">{pageTitle}</h3>
-        <p className="mt-2 text-sm text-gray-400">
-          Showing all loans
-        </p>
-      </div>
-
-      <div className="rounded-3xl bg-white p-6 shadow-sm">
-        <p className="text-sm font-medium text-gray-500">Total Results</p>
-        <h3 className="mt-2 text-2xl font-bold text-indigo-600">
-          {loans.length}
-        </h3>
-        <p className="mt-2 text-sm text-gray-400">
-          Loans in current filtered list
-        </p>
-      </div>
-
-      <div className="rounded-3xl bg-white p-6 shadow-sm">
-        <p className="text-sm font-medium text-gray-500">Archive Mode</p>
-        <h3 className="mt-2 text-2xl font-bold text-gray-900">
-          Unified View
-        </h3>
-        <p className="mt-2 text-sm text-gray-400">
-          Active and deleted loans shown together
-        </p>
-      </div>
-    </div>
-  ) : (
-    <div className="rounded-3xl bg-white p-6 shadow-sm">
-      <div className="mb-6">
-        <h3 className="text-2xl font-semibold text-gray-900">
-          Loan Type Distribution
-        </h3>
-        <p className="mt-1 text-gray-500">
-          Percentage breakdown of the current loan type mix.
-        </p>
-      </div>
-
-      {loanTypeChartData.length > 0 ? (
-        <div className="grid gap-8 xl:grid-cols-2 xl:items-center">
-          <div className="h-[360px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                activeIndex={activeLoanTypeIndex}
-                activeShape={renderActiveShape}
-                data={loanTypeChartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={70}
-                outerRadius={120}
-                dataKey="value"
-                label={renderPercentLabel}
-                labelLine={false}
-                onMouseEnter={(_, index) => setActiveLoanTypeIndex(index)}
-                onClick={handleLoanTypePieClick}
-                >
-                  {loanTypeChartData.map((entry, index) => (
-                    <Cell
-                    key={`loan-type-cell-${index}`}
-                    fill={loanTypeChartColors[index % loanTypeChartColors.length]}
-                    style={{ cursor: "pointer" }}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name) => [value, name]} />
-              </PieChart>
-            </ResponsiveContainer>
+        <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">Loan Summary</h2>
+            <p className="mt-1 text-gray-500">
+              Overview of current records and loan type distribution.
+            </p>
           </div>
 
-          <div className="space-y-4">
-            {loanTypeChartData.map((item, index) => {
-              const percent = totalLoanTypeValue
-                ? ((item.value / totalLoanTypeValue) * 100).toFixed(1)
-                : 0;
+          <button
+            onClick={() => setShowChart(!showChart)}
+            className="rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50"
+          >
+            {showChart ? "Show Cards" : "Show Loan Type Chart"}
+          </button>
+        </div>
 
-              return (
-                <div
-                key={item.name}
-                onClick={() => handleLoanTypePieClick(item)}
-                className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 transition hover:bg-gray-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="h-4 w-4 rounded-full"
-                      style={{
-                        backgroundColor:
-                          loanTypeChartColors[index % loanTypeChartColors.length],
-                      }}
-                    />
-                    <span className="font-medium text-gray-700">{item.name}</span>
-                  </div>
+        {!showChart ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="rounded-3xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">Current View</p>
+              <h3 className="mt-2 text-2xl font-bold text-gray-900">{pageTitle}</h3>
+              <p className="mt-2 text-sm text-gray-400">Showing all loans</p>
+            </div>
 
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{item.value}</p>
-                    <p className="text-sm text-gray-500">{percent}%</p>
-                  </div>
+            <div className="rounded-3xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">Total Results</p>
+              <h3 className="mt-2 text-2xl font-bold text-indigo-600">
+                {loans.length}
+              </h3>
+              <p className="mt-2 text-sm text-gray-400">
+                Loans in current filtered list
+              </p>
+            </div>
+
+            <div className="rounded-3xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">Archive Mode</p>
+              <h3 className="mt-2 text-2xl font-bold text-gray-900">
+                Unified View
+              </h3>
+              <p className="mt-2 text-sm text-gray-400">
+                Active and deleted loans shown together
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="mb-6">
+              <h3 className="text-2xl font-semibold text-gray-900">
+                Loan Type Distribution
+              </h3>
+              <p className="mt-1 text-gray-500">
+                Percentage breakdown of the current loan type mix.
+              </p>
+            </div>
+
+            {loanTypeChartData.length > 0 ? (
+              <div className="grid gap-8 xl:grid-cols-2 xl:items-center">
+                <div className="h-[360px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        activeIndex={activeLoanTypeIndex}
+                        activeShape={renderActiveShape}
+                        data={loanTypeChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={120}
+                        dataKey="value"
+                        label={renderPercentLabel}
+                        labelLine={false}
+                        onMouseEnter={(_, index) => setActiveLoanTypeIndex(index)}
+                        onClick={handleLoanTypePieClick}
+                      >
+                        {loanTypeChartData.map((entry, index) => (
+                          <Cell
+                            key={`loan-type-cell-${index}`}
+                            fill={loanTypeChartColors[index % loanTypeChartColors.length]}
+                            style={{ cursor: "pointer" }}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value, name) => [value, name]} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
-          No loan type data available.
-        </div>
-      )}
-    </div>
-  )}
-</section>
 
-      {/* Table card */}
+                <div className="space-y-4">
+                  {loanTypeChartData.map((item, index) => {
+                    const percent = totalLoanTypeValue
+                      ? ((item.value / totalLoanTypeValue) * 100).toFixed(1)
+                      : 0;
+
+                    return (
+                      <div
+                        key={item.name}
+                        onClick={() => handleLoanTypePieClick(item)}
+                        className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-5 py-4 transition hover:bg-gray-100"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="h-4 w-4 rounded-full"
+                            style={{
+                              backgroundColor:
+                                loanTypeChartColors[index % loanTypeChartColors.length],
+                            }}
+                          />
+                          <span className="font-medium text-gray-700">{item.name}</span>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">{item.value}</p>
+                          <p className="text-sm text-gray-500">{percent}%</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-gray-500">
+                No loan type data available.
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
       <section className="rounded-3xl bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -445,22 +529,14 @@ const handleLoanTypePieClick = (data) => {
                     </td>
 
                     <td className="py-4 text-gray-700">
-                      {loan.loanDetails?.loanType || "-"}
+                      {formatLoanType(loan.loanDetails?.loanType)}
                     </td>
 
                     <td className="py-4 font-medium text-gray-800">
-                      ₹{loan.loanDetails?.amount || 0}
+                      {formatAmount(loan.loanDetails?.amount)}
                     </td>
 
-                    <td className="py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
-                          loan.status
-                        )}`}
-                      >
-                        {loan.status}
-                      </span>
-                    </td>
+                    <td className="py-4">{getStatusBadge(loan.status)}</td>
 
                     <td className="py-4 text-gray-700">
                       {new Date(loan.createdAt).toLocaleDateString()}

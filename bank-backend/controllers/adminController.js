@@ -17,7 +17,7 @@ export const getDashboardStats = async (req, res) => {
     });
 
     const pendingLoans = await Loan.countDocuments({
-      status: "pending",
+      status: {$in: ["submitted", "under_review", "documents_pending"] },
       $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
     });
 
@@ -34,6 +34,11 @@ export const getDashboardStats = async (req, res) => {
     const rejectedLoans = await Loan.countDocuments({
       status: "rejected",
       $or: [{ isArchived: false }, { isArchived: { $exists: false } }],
+    });
+
+    const disbursedLoans = await Loan.countDocuments({
+      status: "disbursed",
+      $or: [{ isArchived: false }, { isArchived: {$exists: false }}],
     });
 
     const homeLoans = await Loan.countDocuments({
@@ -69,6 +74,7 @@ export const getDashboardStats = async (req, res) => {
       draftLoans,
       approvedLoans,
       rejectedLoans,
+      disbursedLoans,
       homeLoans,
       personalLoans,
       educationLoans,
@@ -95,19 +101,23 @@ export const getAllLoans = async (req, res) => {
     }
 
     if (loanType) {
-  if (loanType.toLowerCase() === "unspecified") {
-    filter.$or = [
-      ...(filter.$or || []),
-      { "loanDetails.loanType": { $exists: false } },
-      { "loanDetails.loanType": null },
-      { "loanDetails.loanType": "" },
-    ];
-  } else {
-    filter["loanDetails.loanType"] = loanType;
-  }
-}
+      if (loanType.toLowerCase() === "unspecified") {
+        filter.$or = [
+          ...(filter.$or || []),
+          { "loanDetails.loanType": { $exists: false } },
+          { "loanDetails.loanType": null },
+          { "loanDetails.loanType": "" },
+        ];
+      } else {
+        filter["loanDetails.loanType"] = loanType;
+      }
+    }
 
-    if (status) {
+    if (status === "in_progress") {
+      filter.status = {
+        $in: ["submitted", "under_review", "documents_pending"],
+      };
+    } else if (status) {
       filter.status = status;
     }
 

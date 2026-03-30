@@ -1,5 +1,37 @@
 import mongoose from "mongoose";
 
+const statusHistorySchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: [
+        "draft",
+        "submitted",
+        "under_review",
+        "documents_pending",
+        "approved",
+        "rejected",
+        "disbursed",
+      ],
+      required: true,
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    note: {
+      type: String,
+      default: "",
+    },
+    changedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 const loanSchema = new mongoose.Schema(
   {
     loanId: {
@@ -9,7 +41,7 @@ const loanSchema = new mongoose.Schema(
     },
 
     userId: {
-      type: String, // USR000X
+      type: String,
       required: true,
     },
 
@@ -20,22 +52,22 @@ const loanSchema = new mongoose.Schema(
     },
 
     agentId: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  default: null,
-},
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
 
-createdBy: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: "User",
-  default: null,
-},
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
 
-createdByRole: {
-  type: String,
-  enum: ["user", "agent", "admin"],
-  default: "user",
-},
+    createdByRole: {
+      type: String,
+      enum: ["user", "agent", "admin"],
+      default: "user",
+    },
 
     loanDetails: {
       type: Object,
@@ -54,8 +86,21 @@ createdByRole: {
 
     status: {
       type: String,
-      enum: ["draft", "pending", "approved", "rejected", "modified"],
+      enum: [
+        "draft",
+        "submitted",
+        "under_review",
+        "documents_pending",
+        "approved",
+        "rejected",
+        "disbursed",
+      ],
       default: "draft",
+    },
+
+    statusHistory: {
+      type: [statusHistorySchema],
+      default: [],
     },
 
     remarks: {
@@ -68,10 +113,13 @@ createdByRole: {
       ref: "User",
       default: null,
     },
+
     lastModifiedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
+
     isArchived: {
       type: Boolean,
       default: false,

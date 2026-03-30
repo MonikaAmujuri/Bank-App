@@ -25,7 +25,7 @@ export const getAgentDashboard = async (req, res) => {
 
     const pendingLoans = await Loan.countDocuments({
       agentId,
-      status: "pending",
+      status: { $in: ["submitted", "under_review", "documents_pending"]},
       isArchived: false,
     });
 
@@ -40,6 +40,12 @@ export const getAgentDashboard = async (req, res) => {
       status: "rejected",
       isArchived: false,
     });
+
+    const disbursedLoans = await Loan.countDocuments({
+      agentId,
+      status: "disbursed",
+      isArchived: false,
+    })
 
     const homeLoans = await Loan.countDocuments({
       agentId,
@@ -89,6 +95,7 @@ const recentLoans = await Loan.find({
       pendingLoans,
       approvedLoans,
       rejectedLoans,
+      disbursedLoans,
       homeLoans,
       personalLoans,
       educationLoans,
@@ -142,7 +149,11 @@ export const getAgentLoans = async (req, res) => {
         {
           $or: [
             { agentId: req.user._id },
-            { createdByRole: "user", status: "pending", agentId: null },
+            {
+              createdByRole: "user",
+              status: { $in: ["submitted", "under_review", "documents_pending"] },
+              agentId: null,
+            },
           ],
         },
       ],
@@ -160,7 +171,11 @@ export const getAgentLoans = async (req, res) => {
       }
     }
 
-    if (status) {
+    if (status === "in_progress") {
+      filter.$and.push({
+        status: { $in: ["submitted", "under_review", "documents_pending"] },
+      });
+    } else if (status) {
       filter.$and.push({ status });
     }
 

@@ -1,121 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bank App API Documentation</title>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank App API Documentation</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-    <div class="topbar">
-        Check my bank app API documentation guide
-    </div>
+  <div class="topbar">
+    Check my bank app API documentation guide
+  </div>
 
-    <nav class="navbar">
-        <div class="logo">Bank App API</div>
-        <ul class="nav-links">
-            <li><a href="./guide.html" class="active">Guide</a></li>
-            <li><a href="./auth.html">Auth</a></li>
-            <li><a href="./admin.html">Admin</a></li>
-            <li><a href="./agent.html">Agent</a></li>
-            <li><a href="./customer.html">Customer</a></li>
-            <li><a href="./loans.html">Loans</a></li>
-        </ul>
-    </nav>
+  <nav class="navbar">
+    <div class="logo">Bank App API</div>
+    <ul class="nav-links">
+      <li><a href="./guide.html" class="active">Guide</a></li>
+      <li><a href="./auth.html">Auth</a></li>
+      <li><a href="./admin.html">Admin</a></li>
+      <li><a href="./agent.html">Agent</a></li>
+      <li><a href="./customer.html">Customer</a></li>
+      <li><a href="./loans.html">Loans</a></li>
+    </ul>
+  </nav>
 
-    <div class="container" id="auth">
-        <h1>Guide</h1>
+  <div class="container">
+  <h1>Guide</h1>
+  <p>This documentation contains the API reference for the Bank App project.</p>
+  <p>Endpoints are organized into separate pages for Auth, Admin, Agent, Customer, and Loans.</p>
 
-        <p>Below you'll find examples for your Bank App API endpoints using Fetch API.</p>
-        <p>You can copy paste the code and test your backend endpoints quickly.</p>
+  <h2>Modules</h2>
+  <p><b>Auth:</b> Login and authentication APIs.</p>
+  <p><b>Admin:</b> Admin dashboard, agents, users, and profile APIs.</p>
+  <p><b>Agent:</b> Agent dashboard, user management, and profile APIs.</p>
+  <p><b>Customer:</b> Customer profile, documents, and customer loan APIs.</p>
+  <p><b>Loans:</b> Loan controller APIs for admin, agent, and customer workflows.</p>
 
-        <h2 id="auth">Firebase Login</h2>
-        <p>This endpoint allows the user to log in using Firebase ID token and receive a JWT token from the backend.</p>
+  <h2>Base URL</h2>
+  <div class="code-block">
+    <pre><span class="code-yellow">http://localhost:5000</span></pre>
+  </div>
 
-        <div class="endpoint-title">
-            <span class="method post">POST</span>
-            <span class="route">/api/auth/firebase-login</span>
-        </div>
+  <h2>Authorization Format</h2>
+  <div class="code-block">
+    <pre><span class="code-red">Authorization</span><span class="code-white">: </span><span class="code-yellow">Bearer &lt;token&gt;</span></pre>
+  </div>
 
-        <div class="code-block">
-            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">'http://localhost:5000/api/auth/firebase-login'</span><span class="code-white">, {</span>
-  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">'POST'</span><span class="code-white">,</span>
-  <span class="code-red">headers</span><span class="code-white">: {</span>
-    <span class="code-yellow">'Content-Type'</span><span class="code-white">: </span><span class="code-yellow">'application/json'</span>
-  <span class="code-white">},</span>
-  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({</span>
-    <span class="code-red">idToken</span><span class="code-white">: </span><span class="code-yellow">'eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...'</span>
-  <span class="code-white">})</span>
-<span class="code-white">})</span>
-  <span class="code-white">.</span><span class="code-blue">then</span><span class="code-white">((</span><span class="code-purple">response</span><span class="code-white">) =&gt; </span><span class="code-purple">response</span><span class="code-white">.</span><span class="code-blue">json</span><span class="code-white">())</span>
-  <span class="code-white">.</span><span class="code-blue">then</span><span class="code-white">((</span><span class="code-purple">json</span><span class="code-white">) =&gt; </span><span class="code-blue">console.log</span><span class="code-white">(</span><span class="code-purple">json</span><span class="code-white">));</span></pre>
-        </div>
+  <h2>API Conventions</h2>
+  <p>Protected routes require a valid JWT token in the Authorization header.</p>
+  <p>File upload APIs use <code>formData</code> in the request body.</p>
+  <p>Filter-based APIs use query parameters such as <code>?status=approved</code> or <code>?type=Home%20Loan</code>.</p>
+  <p>Dynamic route values like <code>:id</code>, <code>:userId</code>, and <code>:loanId</code> must be replaced with actual values.</p>
 
-        <span class="label">👇 Output</span>
+  <h2>Notes</h2>
+  <p>All examples in this documentation are written using Fetch API.</p>
+  <p>Responses shown here are sample outputs and may vary depending on the database data.</p>
+  <p>Role-based access applies to Admin, Agent, and Customer endpoints.</p>
 
-        <div class="code-block">
-            <pre><span class="code-white">{</span>
-  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Login successful"</span><span class="code-white">,</span>
-  <span class="code-red">"token"</span><span class="code-white">: </span><span class="code-yellow">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ..."</span><span class="code-white">,</span>
-  <span class="code-red">"user"</span><span class="code-white">: {</span>
-    <span class="code-red">"_id"</span><span class="code-white">: </span><span class="code-yellow">"699ef3399e1cdb38eec7210d"</span><span class="code-white">,</span>
-    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"Admin"</span><span class="code-white">,</span>
-    <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"admin@bank.com"</span><span class="code-white">,</span>
-    <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"+919999999999"</span><span class="code-white">,</span>
-    <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"admin"</span>
-  <span class="code-white">}</span>
-<span class="code-white">}</span></pre>
-        </div>
-
-        <p class="important">
-            <b>Important:</b> The frontend must send a valid Firebase ID token. The backend verifies it and returns your
-            application JWT token.
-        </p>
-
-        <h2 id="auth">User Login</h2>
-        <p>This endpoint allows a user to log in using email and password and receive a JWT token from the backend.</p>
-
-        <div class="endpoint-title">
-            <span class="method post">POST</span>
-            <span class="route">/api/auth/login</span>
-        </div>
-
-        <div class="code-block">
-            <pre><span class="code-blue">fetch</span><span class="code-white">(</span><span class="code-yellow">"http://localhost:5000/api/auth/login"</span><span class="code-white">, {</span>
-  <span class="code-red">method</span><span class="code-white">: </span><span class="code-yellow">"POST"</span><span class="code-white">,</span>
-  <span class="code-red">headers</span><span class="code-white">: {</span>
-    <span class="code-yellow">"Content-Type"</span><span class="code-white">: </span><span class="code-yellow">"application/json"</span><span class="code-white">,</span>
-  <span class="code-white">},</span>
-  <span class="code-red">body</span><span class="code-white">: </span><span class="code-blue">JSON.stringify</span><span class="code-white">({</span>
-    <span class="code-red">email</span><span class="code-white">: </span><span class="code-purple">identifier</span><span class="code-white">.</span><span class="code-blue">toLowerCase</span><span class="code-white">().</span><span class="code-blue">trim</span><span class="code-white">(),</span>
-    <span class="code-red">password</span><span class="code-white">,</span>
-  <span class="code-white">}),</span>
-<span class="code-white">});</span>
+  <h2>Quick Links</h2>
+  <p><a href="./auth.html">Go to Auth APIs</a></p>
+  <p><a href="./admin.html">Go to Admin APIs</a></p>
+  <p><a href="./agent.html">Go to Agent APIs</a></p>
+  <p><a href="./customer.html">Go to Customer APIs</a></p>
+  <p><a href="./loans.html">Go to Loan APIs</a></p>
 </div>
-
-<span class="label">👇 Output</span>
-
-<div class="code-block">
-  <pre><span class="code-white">{</span>
-  <span class="code-red">"message"</span><span class="code-white">: </span><span class="code-yellow">"Login successful"</span><span class="code-white">,</span>
-  <span class="code-red">"token"</span><span class="code-white">: </span><span class="code-yellow">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ..."</span><span class="code-white">,</span>
-  <span class="code-red">"user"</span><span class="code-white">: {</span>
-    <span class="code-red">"id"</span><span class="code-white">: </span><span class="code-yellow">"69afec0f3aab80c84c6ba09b"</span><span class="code-white">,</span>
-    <span class="code-red">"name"</span><span class="code-white">: </span><span class="code-yellow">"User.."</span><span class="code-white">,</span>
-    <span class="code-red">"email"</span><span class="code-white">: </span><span class="code-yellow">"user@bank.com"</span><span class="code-white">,</span>
-    <span class="code-red">"phone"</span><span class="code-white">: </span><span class="code-yellow">"+917777777777"</span><span class="code-white">,</span>
-    <span class="code-red">"role"</span><span class="code-white">: </span><span class="code-yellow">"user"</span>
-  <span class="code-white">}</span>
-<span class="code-white">}</span></pre>
-        </div>
-
-        <p class="important">
-            <b>Important:</b> The frontend sends the email in lowercase and trimmed format before login. On success, the
-            backend returns a JWT token and user details.
-        </p>
-    </div>
 </body>
-
 </html>
