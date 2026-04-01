@@ -3,12 +3,15 @@ import React, { useState } from "react";
 const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [statusNote, setStatusNote] = useState("");
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   const headingText =
     status === "approved"
       ? "Approved Loan Summary"
       : status === "rejected"
       ? "Rejected Loan Summary"
+      : status === "disbursed"
+      ? "Completed Loan Summary"
       : "Review & Submit";
 
   const subText =
@@ -16,6 +19,8 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
       ? "This loan has been approved. Review the final submitted details below."
       : status === "rejected"
       ? "This loan has been rejected. Review the submitted details below."
+      : status === "disbursed"
+      ? "This loan has been completed. Review the details below"
       : "Please review all loan details carefully before submitting.";
 
   const formatCurrency = (value) => {
@@ -33,26 +38,36 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
     return value.charAt(0).toUpperCase() + value.slice(1);
   };
 
+  const formatDate = (value) => {
+    if (!value) return "—";
+    return new Date(value).toLocaleDateString();
+  };
+
+  const formatDateTime = (value) => {
+    if (!value) return "—";
+    return new Date(value).toLocaleString();
+  };
+
   const getStatusClasses = (statusValue) => {
     switch (statusValue) {
       case "draft":
-        return "bg-gray-100 text-gray-700";
+        return "border border-gray-200 bg-gray-100 text-gray-700";
       case "submitted":
-        return "bg-blue-100 text-blue-700";
+        return "border border-blue-200 bg-blue-100 text-blue-700";
       case "under_review":
-        return "bg-yellow-100 text-yellow-700";
+        return "border border-yellow-200 bg-yellow-100 text-yellow-700";
       case "documents_pending":
-        return "bg-orange-100 text-orange-700";
+        return "border border-orange-200 bg-orange-100 text-orange-700";
       case "approved":
-        return "bg-green-100 text-green-700";
+        return "border border-green-200 bg-green-100 text-green-700";
       case "rejected":
-        return "bg-red-100 text-red-700";
+        return "border border-red-200 bg-red-100 text-red-700";
       case "disbursed":
-        return "bg-emerald-100 text-emerald-700";
+        return "border border-emerald-200 bg-emerald-100 text-emerald-700";
       case "pending":
-        return "bg-blue-100 text-blue-700";
+        return "border border-blue-200 bg-blue-100 text-blue-700";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "border border-gray-200 bg-gray-100 text-gray-700";
     }
   };
 
@@ -109,7 +124,11 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
     ];
 
     if (effectiveStatus === "rejected") {
-      return [...baseStages, { key: "rejected", label: "Rejected" }];
+      return [
+        ...baseStages,
+        { key: "rejected", label: "Rejected" },
+        { key: "disbursed", label: "Disbursed" },
+      ];
     }
 
     return [
@@ -133,10 +152,12 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
 
     let state = "upcoming";
 
-    if (index < currentStageIndex) {
-      state = "completed";
-    } else if (index === currentStageIndex) {
+    if (stage.key === currentStatus) {
       state = "current";
+    } else if (historyItem) {
+      state = "completed";
+    } else if (index < currentStageIndex) {
+      state = "skipped";
     }
 
     return {
@@ -144,21 +165,28 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
       state,
       note: historyItem?.note || "",
       changedAt: historyItem?.changedAt || "",
+      changedBy: historyItem?.changedBy || null,
     };
   });
 
-  const getHorizontalStageClasses = (state) => {
-    if (state === "completed") {
-      return "border-green-200 bg-green-50 text-green-700";
-    }
-    if (state === "current") {
-      return "border-indigo-200 bg-indigo-50 text-indigo-700";
-    }
-    return "border-gray-200 bg-white text-gray-500";
+  const isActiveTimelineState = (state) =>
+    state === "completed" || state === "current";
+
+  const getConnectorClasses = (index) => {
+    const leftStage = fullTimeline[index];
+    const rightStage = fullTimeline[index + 1];
+
+    return leftStage &&
+      rightStage &&
+      isActiveTimelineState(leftStage.state) &&
+      isActiveTimelineState(rightStage.state)
+      ? "bg-green-400"
+      : "bg-gray-200";
   };
 
   const getHorizontalDotClasses = (state, key) => {
     if (state === "completed") return "bg-green-500";
+    if (state === "skipped") return "bg-rose-300";
     if (state === "upcoming") return "bg-gray-300";
 
     switch (key) {
@@ -181,16 +209,131 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
     }
   };
 
-  const getConnectorClasses = (index) => {
-    return index < currentStageIndex ? "bg-green-400" : "bg-gray-200";
+  const visibleHistory = showAllHistory
+    ? timelineHistory.slice().reverse()
+    : timelineHistory.slice().reverse().slice(0, 2);
+
+  const DetailItem = ({ label, value, tone = "default" }) => {
+    const toneClasses = {
+      default: "border-gray-200 bg-white",
+      blue: "border-blue-100 bg-gradient-to-br from-white to-blue-50",
+      emerald: "border-emerald-100 bg-gradient-to-br from-white to-emerald-50",
+      amber: "border-amber-100 bg-gradient-to-br from-white to-amber-50",
+      violet: "border-violet-100 bg-gradient-to-br from-white to-violet-50",
+    };
+
+    return (
+      <div
+        className={`rounded-3xl border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${toneClasses[tone]}`}
+      >
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+          {label}
+        </p>
+        <p className="mt-3 break-words text-lg font-bold text-gray-900">
+          {value || "—"}
+        </p>
+      </div>
+    );
   };
 
-  const DetailItem = ({ label, value }) => (
-    <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <p className="mb-1 text-sm text-gray-500">{label}</p>
-      <p className="break-words text-base font-medium text-gray-900">{value}</p>
-    </div>
+  const SectionCard = ({
+    title,
+    subtitle,
+    children,
+    right,
+    badge = "SECTION",
+  }) => (
+    <section className="overflow-hidden rounded-[30px] border border-gray-100 bg-white shadow-[0_14px_45px_rgba(15,23,42,0.07)]">
+      <div className="border-b border-indigo-50 bg-gradient-to-r from-slate-50 via-white to-sky-50 px-6 py-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="mb-2 inline-flex rounded-full border border-indigo-100 bg-white/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600 shadow-sm">
+              {badge}
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 md:text-[30px]">
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="mt-1 text-sm text-gray-600 md:text-base">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {right}
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-b from-white to-slate-50/70 p-6">
+        {children}
+      </div>
+    </section>
   );
+
+  const DocumentCard = ({ title, files, singleFile, emptyText }) => {
+    const hasSingle = !!singleFile;
+    const hasMultiple = Array.isArray(files) && files.length > 0;
+    const count = hasMultiple ? files.length : hasSingle ? 1 : 0;
+
+    return (
+      <div className="group rounded-3xl border border-gray-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-lg">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 text-xl">
+              📄
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">{title}</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {count > 0
+                  ? `${count} file${count > 1 ? "s" : ""} available`
+                  : emptyText}
+              </p>
+            </div>
+          </div>
+
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              count > 0
+                ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                : "border border-red-200 bg-red-50 text-red-600"
+            }`}
+          >
+            {count > 0 ? "Uploaded" : "Missing"}
+          </span>
+        </div>
+
+        {hasSingle ? (
+          <a
+            href={singleFile}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+          >
+            View Document
+          </a>
+        ) : hasMultiple ? (
+          <div className="space-y-2">
+            {files.map((file, index) => (
+              <a
+                key={index}
+                href={file}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm font-medium text-indigo-700 transition hover:border-indigo-200 hover:bg-indigo-50"
+              >
+                <span>
+                  {title} {index + 1}
+                </span>
+                <span>Open ↗</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm font-medium text-red-500">{emptyText}</p>
+        )}
+      </div>
+    );
+  };
 
   const handleStatusUpdateClick = () => {
     onUpdateStatus(selectedStatus, statusNote);
@@ -199,93 +342,324 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <section className="rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-8 py-8 text-white shadow-lg">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="mb-2 text-sm font-medium uppercase tracking-widest text-indigo-100">
-              Final Review
-            </p>
-            <h2 className="text-3xl font-bold md:text-4xl">{headingText}</h2>
-            <p className="mt-3 max-w-2xl text-indigo-100">{subText}</p>
-          </div>
+    <div className="mx-auto max-w-7xl space-y-8">
+      <section className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-indigo-700 via-blue-600 to-cyan-500 px-6 py-7 text-white shadow-[0_18px_50px_rgba(59,130,246,0.24)] md:px-7 md:py-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.22),transparent_30%)]"></div>
+        <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-white/10 blur-3xl"></div>
+        <div className="absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl"></div>
 
-          <div className="rounded-2xl bg-white/15 px-5 py-4 backdrop-blur-sm">
-            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-100">
-              Current Status
+        <div className="relative flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+          <div className="max-w-4xl">
+            <p className="mb-3 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/90 backdrop-blur">
+              Agent Review Workspace
             </p>
-            <p className="mt-2">
+
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl font-bold leading-tight md:text-[52px]">
+                {headingText}
+              </h1>
               <span
-                className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatusClasses(
+                className={`rounded-full px-4 py-2 text-xs font-bold ${getStatusClasses(
                   loanData?.status
                 )}`}
               >
                 {getStatusLabel(loanData?.status)}
               </span>
+            </div>
+
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-50 md:text-[15px]">
+              {subText}
             </p>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+                <p className="text-xs text-blue-100">Loan Type</p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {formatLoanType(loanData.loanDetails?.loanType)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+                <p className="text-xs text-blue-100">Amount</p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {formatCurrency(loanData.loanDetails?.amount)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+                <p className="text-xs text-blue-100">Current Status</p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {getStatusLabel(loanData?.status)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur">
+                <p className="text-xs text-blue-100">Created</p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {formatDate(loanData.createdAt)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/20 bg-white/10 px-5 py-4 backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-100">
+              Current Status
+            </p>
+            <div className="mt-3">
+              <span
+                className={`rounded-full px-3 py-1.5 text-sm font-semibold ${getStatusClasses(
+                  loanData?.status
+                )}`}
+              >
+                {getStatusLabel(loanData?.status)}
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-2xl font-semibold text-gray-900">Loan Timeline</h3>
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusClasses(
-              loanData?.status
-            )}`}
-          >
-            {getStatusLabel(loanData?.status)}
-          </span>
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-[28px] border border-indigo-100 bg-white p-6 shadow-[0_10px_35px_rgba(99,102,241,0.08)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Current Status</p>
+              <div className="mt-3">
+                <span
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold ${getStatusClasses(
+                    loanData?.status
+                  )}`}
+                >
+                  {getStatusLabel(loanData?.status)}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-indigo-50 px-3 py-2 text-xl">📌</div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <div className="min-w-[950px]">
-            <div className="relative flex items-start justify-between px-4 pt-6">
-              {fullTimeline.map((item, index) => (
-                <div
-                  key={item.key}
-                  className="relative flex flex-1 flex-col items-center"
-                >
-                  {index !== fullTimeline.length - 1 && (
+        <div className="rounded-[28px] border border-gray-100 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Loan Amount</p>
+              <h3 className="mt-3 text-2xl font-bold text-gray-900">
+                {formatCurrency(loanData.loanDetails?.amount)}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {formatLoanType(loanData.loanDetails?.loanType)}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-emerald-50 px-3 py-2 text-xl">💰</div>
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-gray-100 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Tenure</p>
+              <h3 className="mt-3 text-2xl font-bold text-indigo-600">
+                {loanData.loanDetails?.tenure
+                  ? `${loanData.loanDetails.tenure} months`
+                  : "—"}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">Loan Duration</p>
+            </div>
+            <div className="rounded-2xl bg-blue-50 px-3 py-2 text-xl">⏳</div>
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-gray-100 bg-white p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500">Last Updated</p>
+              <h3 className="mt-3 text-lg font-bold text-gray-900">
+                {formatDate(loanData.updatedAt)}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Review Timestamp
+              </p>
+            </div>
+            <div className="rounded-2xl bg-violet-50 px-3 py-2 text-xl">🛠️</div>
+          </div>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_10px_40px_rgba(15,23,42,0.06)]">
+        <div className="border-b border-gray-100 bg-gradient-to-r from-white to-slate-50 px-6 py-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Loan Timeline</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Stage tracker and audit-friendly history for this loan.
+              </p>
+            </div>
+
+            <span
+              className={`w-fit rounded-full px-3 py-1.5 text-xs font-semibold ${getStatusClasses(
+                loanData?.status
+              )}`}
+            >
+              {getStatusLabel(loanData?.status)}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="rounded-[24px] border border-slate-100 bg-slate-50/70 px-4 py-6">
+            <p className="mb-4 px-3 text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
+              Progress Overview
+            </p>
+
+            <div className="overflow-x-auto">
+              <div className="min-w-[920px] px-3 pt-2">
+                <div className="relative flex items-start justify-between">
+                  {fullTimeline.map((item, index) => (
                     <div
-                      className={`absolute left-1/2 top-[18px] h-1 w-full ${getConnectorClasses(
-                        index
-                      )}`}
-                    ></div>
-                  )}
+                      key={item.key}
+                      className="relative flex flex-1 flex-col items-center"
+                    >
+                      {index !== fullTimeline.length - 1 && (
+                        <div
+                          className={`absolute left-1/2 top-[15px] h-[3px] w-full rounded-full ${getConnectorClasses(
+                            index
+                          )}`}
+                        ></div>
+                      )}
 
-                  <div
-                    className={`relative z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 border-white shadow-sm ${getHorizontalDotClasses(
-                      item.state,
-                      item.key
-                    )}`}
-                  >
-                    <div className="h-2.5 w-2.5 rounded-full bg-white"></div>
-                  </div>
+                      <div
+                        className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-4 border-white shadow-sm ${getHorizontalDotClasses(
+                          item.state,
+                          item.key
+                        )}`}
+                      >
+                        {item.state === "skipped" ? (
+                          <span className="text-[10px] font-bold text-white">
+                            ×
+                          </span>
+                        ) : (
+                          <div className="h-2 w-2 rounded-full bg-white"></div>
+                        )}
+                      </div>
 
-                  <div
-                    className={`mt-4 w-[150px] rounded-2xl border p-4 text-center ${getHorizontalStageClasses(
-                      item.state
-                    )}`}
-                  >
-                    <h3 className="text-sm font-semibold leading-5">{item.label}</h3>
+                      <div className="mt-3 text-center">
+                        <p
+                          className={`text-xs font-bold ${
+                            item.state === "current"
+                              ? "text-indigo-700"
+                              : item.state === "completed"
+                              ? "text-emerald-700"
+                              : item.state === "skipped"
+                              ? "text-rose-700"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {item.label}
+                        </p>
 
-                    <p className="mt-2 text-xs font-medium">
-                      {item.state === "completed" && "Completed"}
-                      {item.state === "current" && "Current Stage"}
-                      {item.state === "upcoming" && "Upcoming"}
-                    </p>
+                        <div className="mt-1">
+                          {item.state === "current" ? (
+                            <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-700">
+                              Current
+                            </span>
+                          ) : item.state === "completed" ? (
+                            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+                              Done
+                            </span>
+                          ) : item.state === "skipped" ? (
+                            <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-700">
+                              Skipped
+                            </span>
+                          ) : (
+                            <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-semibold text-gray-500">
+                              Upcoming
+                            </span>
+                          )}
+                        </div>
 
-                    <p className="mt-2 min-h-[32px] text-[11px] leading-4 text-gray-500">
-                      {item.note || "—"}
-                    </p>
+                        <p className="mt-2 text-[11px] text-gray-400">
+                          {item.state === "upcoming" || item.state === "skipped"
+                            ? "—"
+                            : item.changedAt
+                            ? new Date(item.changedAt).toLocaleDateString()
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
 
-                    <p className="mt-2 text-[11px] text-gray-400">
-                      {item.changedAt
-                        ? new Date(item.changedAt).toLocaleDateString()
-                        : "-"}
-                    </p>
+          <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+          <div className="mt-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-gray-500">
+                  Audit History
+                </h3>
+                <p className="mt-1 text-xs text-gray-400">
+                  {timelineHistory.length} update{timelineHistory.length > 1 ? "s" : ""}
+                </p>
+              </div>
+
+              {timelineHistory.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllHistory((prev) => !prev)}
+                  className="rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100"
+                >
+                  {showAllHistory
+                    ? "Show less"
+                    : `View all ${timelineHistory.length} updates`}
+                </button>
+              )}
+            </div>
+
+            <div
+              className={
+                showAllHistory
+                  ? "grid grid-cols-1 gap-3 md:grid-cols-2"
+                  : "space-y-3"
+              }
+            >
+              {visibleHistory.map((item, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4 transition hover:border-gray-200 hover:bg-white"
+                >
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`rounded-full px-3 py-1 text-[11px] font-semibold ${getStatusClasses(
+                            item.status
+                          )}`}
+                        >
+                          {getStatusLabel(item.status)}
+                        </span>
+
+                        <span className="text-xs text-gray-400">
+                          {formatDateTime(item.changedAt)}
+                        </span>
+                      </div>
+
+                      <p className="mt-3 text-sm font-semibold text-gray-900">
+                        {item.note || "No note provided"}
+                      </p>
+
+                      <p className="mt-1 text-xs text-gray-500">
+                        Updated by{" "}
+                        <span className="font-semibold text-gray-700">
+                          {item.changedBy?.name
+                            ? `${item.changedBy.name}${
+                                item.changedBy.role ? ` (${item.changedBy.role})` : ""
+                              }`
+                            : "System / Agent"}
+                        </span>
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -294,33 +668,53 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-        <div className="mb-5">
-          <h3 className="text-2xl font-semibold text-gray-900">
-            Status Management
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Update loan status after reviewing documents and customer details.
-          </p>
+      <section className="rounded-[28px] border border-gray-100 bg-white p-6 shadow-[0_10px_40px_rgba(15,23,42,0.06)]">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Status Control</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Move the loan forward and save an internal note for audit history.
+            </p>
+          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-xl shadow-sm">
+            ✅
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="mb-5 rounded-2xl border border-amber-100 bg-gradient-to-r from-amber-50 to-yellow-50 p-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500">
+            Current Status
+          </p>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${getStatusClasses(
+                loanData.status
+              )}`}
+            >
+              {getStatusLabel(loanData.status)}
+            </span>
+
+            <span className="hidden rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold text-amber-700 sm:inline-flex">
+              Stage Control
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-semibold text-gray-700">
               Select Status
             </label>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-indigo-500"
+              className="h-14 w-full rounded-2xl border border-gray-200 bg-white px-4 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
             >
               <option value="">Select Status</option>
               <option value="draft">Draft</option>
               <option value="submitted">Submitted</option>
               <option value="under_review">Under Review</option>
-              <option value="documents_pending">
-                Documents Pending
-              </option>
+              <option value="documents_pending">Documents Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
               <option value="disbursed">Disbursed</option>
@@ -328,63 +722,74 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-semibold text-gray-700">
               Note <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <textarea
               value={statusNote}
               onChange={(e) => setStatusNote(e.target.value)}
               placeholder="Enter reason / note for this status update"
-              className="w-full rounded-2xl border border-gray-200 px-4 py-3 outline-none transition focus:border-indigo-500"
+              rows={4}
+              className="w-full resize-none rounded-2xl border border-gray-200 bg-white px-4 py-3 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50"
             />
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-5 flex items-center justify-between gap-4">
+          <p className="hidden text-xs text-gray-500 md:block">
+            This update will appear in audit history below.
+          </p>
+
           <button
             onClick={handleStatusUpdateClick}
             disabled={statusUpdating || !selectedStatus || !statusNote.trim()}
-            className="rounded-2xl bg-indigo-600 px-6 py-3 font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-2xl bg-indigo-600 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:bg-indigo-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
           >
             {statusUpdating ? "Updating..." : "Update Status"}
           </button>
         </div>
       </section>
 
-      <div className="grid gap-8">
-        <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900">
-                Loan Details
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Summary of selected loan information
-              </p>
-            </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-xl text-indigo-600">
-              💰
+      <div className="space-y-6">
+  <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+    <div className="space-y-6">
+      <SectionCard
+        title="Loan Overview"
+        subtitle="Primary financial details and lending configuration."
+        badge="Financial Summary"
+        right={
+          <div className="flex h-14 w-14 items-center justify-center rounded-3xl border border-indigo-100 bg-white/80 text-2xl shadow-sm">
+            🏦
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-[26px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+              Loan Amount
+            </p>
+
+            <h3 className="mt-3 text-3xl font-extrabold text-gray-900 md:text-[38px]">
+              {formatCurrency(loanData.loanDetails?.amount)}
+            </h3>
+
+            <p className="mt-2 max-w-sm text-sm text-gray-600">
+              Total requested loan value configured for this application.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-700">
+                {formatLoanType(loanData.loanDetails?.loanType)}
+              </span>
+              <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700">
+                {loanData.loanDetails?.tenure
+                  ? `${loanData.loanDetails.tenure} months`
+                  : "—"}
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <DetailItem
-              label="Amount"
-              value={formatCurrency(loanData.loanDetails?.amount)}
-            />
-            <DetailItem
-              label="Loan Type"
-              value={formatLoanType(loanData.loanDetails?.loanType)}
-            />
-            <DetailItem
-              label="Tenure"
-              value={
-                loanData.loanDetails?.tenure
-                  ? `${loanData.loanDetails.tenure} months`
-                  : "—"
-              }
-            />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1">
             <DetailItem
               label="Interest Rate"
               value={
@@ -393,205 +798,206 @@ const ReviewSubmit = ({ loanData, status, onUpdateStatus, statusUpdating }) => {
                   ? `${loanData.loanDetails?.interestRate || loanData.loanDetails?.intrestRate}%`
                   : "—"
               }
+              tone="blue"
+            />
+            <DetailItem
+              label="Tenure"
+              value={
+                loanData.loanDetails?.tenure
+                  ? `${loanData.loanDetails.tenure} months`
+                  : "—"
+              }
+              tone="amber"
+            />
+            <DetailItem
+              label="Loan Type"
+              value={formatLoanType(loanData.loanDetails?.loanType)}
+              tone="violet"
             />
           </div>
-        </section>
+        </div>
+      </SectionCard>
 
-        <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900">
-                Employment Details
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Applicant work and income information
-              </p>
+      <SectionCard
+        title="Employment Details"
+        subtitle="Applicant work profile, salary details, and location."
+        badge="Work Profile"
+        right={
+          <div className="flex h-14 w-14 items-center justify-center rounded-3xl border border-blue-100 bg-white/80 text-2xl shadow-sm">
+            💼
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+          <div className="rounded-[26px] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-sky-50 p-5 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-blue-700">
+              Income Snapshot
+            </p>
+
+            <div className="mt-4 grid grid-cols-1 gap-4">
+              <div className="rounded-3xl border border-blue-100 bg-white/80 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+                  Salary
+                </p>
+                <p className="mt-3 text-3xl font-extrabold leading-tight text-gray-900">
+                  {formatCurrency(loanData.employmentDetails?.salary)}
+                </p>
+              </div>
+
+              <div className="rounded-3xl border border-sky-100 bg-white/80 p-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+                  Net Salary
+                </p>
+                <p className="mt-3 text-3xl font-extrabold leading-tight text-gray-900">
+                  {formatCurrency(loanData.employmentDetails?.netHandSalary)}
+                </p>
+              </div>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-xl text-blue-600">
-              💼
-            </div>
+
+            <p className="mt-4 text-sm text-gray-600">
+              Primary employment income used for loan evaluation and repayment review.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4">
             <DetailItem
-              label="Company Name"
+              label="Company"
               value={formatText(loanData.employmentDetails?.companyName)}
-            />
-            <DetailItem
-              label="Job Title"
-              value={formatText(loanData.employmentDetails?.jobTitle)}
+              tone="blue"
             />
             <DetailItem
               label="Location"
               value={formatText(loanData.employmentDetails?.location)}
+              tone="amber"
             />
             <DetailItem
-              label="Salary"
-              value={formatCurrency(loanData.employmentDetails?.salary)}
-            />
-            <DetailItem
-              label="Net Hand Salary"
-              value={formatCurrency(loanData.employmentDetails?.netHandSalary)}
+              label="Job Title"
+              value={formatText(loanData.employmentDetails?.jobTitle)}
+              tone="violet"
             />
           </div>
-        </section>
+        </div>
+      </SectionCard>
+    </div>
 
-        <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900">
-                KYC Details
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Identity and address information
-              </p>
+    <div className="space-y-6">
+      {loanData?.kycDetails && (
+        <SectionCard
+          title="Uploaded Documents"
+          subtitle="Review all submitted files for KYC and income proof."
+          badge="Document Vault"
+          right={
+            <div className="rounded-2xl bg-violet-50 px-3 py-2 text-xl">
+              📁
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-xl text-green-600">
-              🪪
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <DetailItem
-              label="Aadhar Number"
-              value={formatText(loanData.kycDetails?.aadharNumber)}
+          }
+        >
+          <div id="documents" className="grid grid-cols-1 gap-4">
+            <DocumentCard
+              title="PAN Card"
+              singleFile={loanData.kycDetails?.panFile}
+              emptyText="PAN card not uploaded"
             />
-            <DetailItem
-              label="PAN Number"
-              value={formatText(loanData.kycDetails?.panNumber)}
+
+            <DocumentCard
+              title="Aadhaar Card"
+              singleFile={loanData.kycDetails?.aadhaarFile}
+              emptyText="Aadhaar card not uploaded"
             />
-            <div className="md:col-span-2 xl:col-span-1">
-              <DetailItem
-                label="Address"
-                value={formatText(loanData.kycDetails?.address)}
-              />
-            </div>
+
+            <DocumentCard
+              title="Bank Statement"
+              files={loanData.kycDetails?.bankStatements}
+              emptyText="Bank statements not uploaded"
+            />
+
+            <DocumentCard
+              title="IT Return"
+              files={loanData.kycDetails?.itReturns}
+              emptyText="IT returns not uploaded"
+            />
+
+            <DocumentCard
+              title="Payslip"
+              files={loanData.kycDetails?.payslips}
+              emptyText="Payslips not uploaded"
+            />
           </div>
-        </section>
+        </SectionCard>
+      )}
+    </div>
+  </div>
 
-        {loanData?.kycDetails && (
-          <section className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl font-semibold text-gray-900">
-                  Uploaded Documents
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Customer submitted files for verification
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-xl text-purple-600">
-                📄
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                <p className="mb-3 text-sm font-medium text-gray-500">PAN Card</p>
-                {loanData.kycDetails?.panFile ? (
-                  <a
-                    href={loanData.kycDetails.panFile}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-indigo-600 hover:underline"
-                  >
-                    View PAN Card
-                  </a>
-                ) : (
-                  <p className="text-sm text-red-500">Not uploaded</p>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                <p className="mb-3 text-sm font-medium text-gray-500">
-                  Aadhaar Card
-                </p>
-                {loanData.kycDetails?.aadhaarFile ? (
-                  <a
-                    href={loanData.kycDetails.aadhaarFile}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-indigo-600 hover:underline"
-                  >
-                    View Aadhaar Card
-                  </a>
-                ) : (
-                  <p className="text-sm text-red-500">Not uploaded</p>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                <p className="mb-3 text-sm font-medium text-gray-500">
-                  Bank Statements
-                </p>
-                {loanData.kycDetails?.bankStatements?.length > 0 ? (
-                  <div className="space-y-2">
-                    {loanData.kycDetails.bankStatements.map((file, index) => (
-                      <a
-                        key={index}
-                        href={file}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block font-medium text-indigo-600 hover:underline"
-                      >
-                        View Bank Statement {index + 1}
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-red-500">Not uploaded</p>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                <p className="mb-3 text-sm font-medium text-gray-500">
-                  IT Returns
-                </p>
-                {loanData.kycDetails?.itReturns?.length > 0 ? (
-                  <div className="space-y-2">
-                    {loanData.kycDetails.itReturns.map((file, index) => (
-                      <a
-                        key={index}
-                        href={file}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block font-medium text-indigo-600 hover:underline"
-                      >
-                        View IT Return {index + 1}
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-red-500">Not uploaded</p>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 md:col-span-2 xl:col-span-1">
-                <p className="mb-3 text-sm font-medium text-gray-500">
-                  Payslips
-                </p>
-                {loanData.kycDetails?.payslips?.length > 0 ? (
-                  <div className="space-y-2">
-                    {loanData.kycDetails.payslips.map((file, index) => (
-                      <a
-                        key={index}
-                        href={file}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="block font-medium text-indigo-600 hover:underline"
-                      >
-                        View Payslip {index + 1}
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-red-500">Not uploaded</p>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
+  <SectionCard
+    title="KYC Details"
+    subtitle="Identity details and address used for verification."
+    badge="Identity Check"
+    right={
+      <div className="flex h-14 w-14 items-center justify-center rounded-3xl border border-violet-100 bg-white/80 text-2xl shadow-sm">
+        🪪
       </div>
+    }
+  >
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="rounded-[26px] border border-violet-100 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 p-5 shadow-sm">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-violet-700">
+          Identity Snapshot
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <div className="rounded-2xl border border-violet-100 bg-white/85 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+              PAN Number
+            </p>
+            <p className="mt-2 font-mono text-lg font-semibold tracking-[0.08em] text-gray-900">
+              {formatText(loanData.kycDetails?.panNumber)}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-fuchsia-100 bg-white/85 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+              Aadhaar Number
+            </p>
+            <p className="mt-2 font-mono text-lg font-semibold tracking-[0.08em] text-gray-900">
+              {formatText(
+                loanData.kycDetails?.aadharNumber ||
+                  loanData.kycDetails?.aadhaarNumber
+              )}
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-4 text-sm text-gray-600">
+          Primary identity information used for KYC verification and compliance review.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <DetailItem
+          label="Verification Status"
+          value={
+            loanData.kycDetails?.panNumber &&
+            (loanData.kycDetails?.aadharNumber ||
+              loanData.kycDetails?.aadhaarNumber)
+              ? "Identity details available"
+              : "Incomplete KYC details"
+          }
+          tone="violet"
+        />
+        <DetailItem
+          label="Address Type"
+          value={loanData.kycDetails?.address ? "Address provided" : "Address missing"}
+          tone="amber"
+        />
+        <DetailItem
+          label="Address"
+          value={formatText(loanData.kycDetails?.address)}
+          tone="default"
+        />
+      </div>
+    </div>
+  </SectionCard>
+</div>
     </div>
   );
 };

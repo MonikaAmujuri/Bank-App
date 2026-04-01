@@ -566,13 +566,19 @@ const renderActiveShape = (props) => {
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-medium ${
                             loan.status === "approved"
-                              ? "bg-green-100 text-green-700"
+                              ? "border border-green-200 bg-green-100 text-green-700"
                               : loan.status === "pending"
-                              ? "bg-blue-100 text-blue-700"
+                              ? "border border-blue-200 bg-blue-100 text-blue-700"
                               : loan.status === "draft"
-                              ? "bg-yellow-100 text-yellow-700"
+                              ? "border border-yellow-200 bg-yellow-100 text-yellow-700"
                               : loan.status === "rejected"
-                              ? "bg-red-100 text-red-700"
+                              ? "border border-red-200 bg-red-100 text-red-700"
+                              : loan.status === "under_review"
+                              ? "border border-amber-200 bg-amber-100 text-amber-700"
+                              : loan.status === "document_pending"
+                              ? "border border-orange-200 bg-orange-100 text-orange-700"
+                              : loan.status === "disbursed"
+                              ? "boarder border-emerald-200 bg-emerald-100 text-emerald-700"
                               : "bg-gray-100 text-gray-700"
                           }`}
                         >

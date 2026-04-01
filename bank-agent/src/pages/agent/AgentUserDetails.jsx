@@ -231,150 +231,212 @@ const handleCopyPassword = async () => {
       </div>
     </section>
 
-    <section className="rounded-3xl bg-white p-6 shadow-sm">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Profile Information
-          </h2>
-          <p className="mt-1 text-gray-500">
-            Customer identity and contact details.
-          </p>
+    <section className="overflow-hidden rounded-[30px] border border-gray-100 bg-white shadow-[0_14px_45px_rgba(15,23,42,0.07)]">
+  <div className="border-b border-indigo-50 bg-gradient-to-r from-slate-50 via-white to-sky-50 px-6 py-5">
+    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <div className="mb-2 inline-flex rounded-full border border-indigo-100 bg-white/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600 shadow-sm">
+          Customer Profile
         </div>
-
-        <div
-          className={`rounded-full px-4 py-2 text-sm font-semibold ${
-            data.user.isDeleted
-              ? "bg-red-100 text-red-700"
-              : "bg-green-100 text-green-700"
-          }`}
-        >
-          {data.user.isDeleted ? "Inactive Customer" : "Active Customer"}
-        </div>
+        <h2 className="text-2xl font-bold text-gray-900 md:text-[30px]">
+          Profile Information
+        </h2>
+        <p className="mt-1 text-sm text-gray-600 md:text-base">
+          Customer identity and contact details.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-2xl bg-gray-50 p-5">
-          <p className="mb-2 text-sm text-gray-500">Customer ID</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {data.user.userId || "-"}
-          </p>
+      <div
+        className={`rounded-full px-4 py-2 text-sm font-semibold ${
+          data.user.isDeleted
+            ? "border border-red-200 bg-red-50 text-red-700"
+            : "border border-green-200 bg-green-50 text-green-700"
+        }`}
+      >
+        {data.user.isDeleted ? "Inactive Customer" : "Active Customer"}
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-gradient-to-b from-white to-slate-50/70 p-6">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="rounded-[26px] border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-5 shadow-sm">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-700">
+          Identity Snapshot
+        </p>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="rounded-3xl border border-indigo-100 bg-white/85 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+              Customer ID
+            </p>
+            <p className="mt-3 text-2xl font-extrabold text-gray-900">
+              {data.user.userId || "-"}
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-blue-100 bg-white/85 p-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+              Full Name
+            </p>
+            <p className="mt-3 text-2xl font-extrabold text-gray-900">
+              {data.user.name || "-"}
+            </p>
+          </div>
         </div>
 
-        <div className="rounded-2xl bg-gray-50 p-5">
-          <p className="mb-2 text-sm text-gray-500">Name</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {data.user.name || "-"}
-          </p>
-        </div>
+        <p className="mt-4 text-sm text-gray-600">
+          Core profile information used for customer identification and loan servicing.
+        </p>
+      </div>
 
-        <div className="rounded-2xl bg-gray-50 p-5">
-          <p className="mb-2 text-sm text-gray-500">Email</p>
-          <p className="text-lg font-semibold text-gray-900">
+      <div className="grid grid-cols-1 gap-4">
+        <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-white to-blue-50 p-4 shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+            Email
+          </p>
+          <p className="mt-3 break-words text-lg font-bold text-gray-900">
             {data.user.email || "-"}
           </p>
         </div>
 
-        <div className="rounded-2xl bg-gray-50 p-5">
-          <p className="mb-2 text-sm text-gray-500">Phone</p>
-          <p className="text-lg font-semibold text-gray-900">
+        <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50 p-4 shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+            Phone
+          </p>
+          <p className="mt-3 break-words text-lg font-bold text-gray-900">
             {data.user.phone || "-"}
           </p>
         </div>
-
-        <div className="rounded-2xl bg-gray-50 p-5">
-          <p className="mb-2 text-sm text-gray-500">PAN</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {data.user.panNumber || "-"}
-          </p>
-        </div>
-
-        <div className="rounded-2xl bg-gray-50 p-5">
-          <p className="mb-2 text-sm text-gray-500">Aadhar</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {data.user.aadharNumber || "-"}
-          </p>
-        </div>
-
-        <div className="rounded-2xl bg-gray-50 p-5 md:col-span-2 xl:col-span-3">
-          <p className="mb-2 text-sm text-gray-500">Address</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {data.user.address || "-"}
-          </p>
-        </div>
       </div>
-    </section>
+    </div>
 
-    <section className="rounded-3xl bg-white p-6 shadow-sm">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Loan History</h2>
-          <p className="mt-1 text-gray-500">
-            All loan records related to this customer.
-          </p>
-        </div>
+    <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="rounded-3xl border border-violet-100 bg-gradient-to-br from-white to-violet-50 p-4 shadow-sm">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+          PAN
+        </p>
+        <p className="mt-3 font-mono text-xl font-semibold tracking-[0.08em] text-gray-900">
+          {data.user.panNumber || "-"}
+        </p>
       </div>
 
-      {data.loans.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
-          <h3 className="text-xl font-semibold text-gray-800">
-            No loans found
-          </h3>
-          <p className="mt-2 text-gray-500">
-            This customer does not have any loan records yet.
-          </p>
+      <div className="rounded-3xl border border-fuchsia-100 bg-gradient-to-br from-white to-fuchsia-50 p-4 shadow-sm">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+          Aadhaar
+        </p>
+        <p className="mt-3 font-mono text-xl font-semibold tracking-[0.08em] text-gray-900">
+          {data.user.aadharNumber || "-"}
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-6 rounded-[26px] border border-gray-200 bg-white p-5 shadow-sm">
+      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gray-500">
+        Address
+      </p>
+      <p className="mt-3 text-lg font-semibold text-gray-900">
+        {data.user.address || "-"}
+      </p>
+    </div>
+  </div>
+</section>
+
+    <section className="overflow-hidden rounded-[30px] border border-gray-100 bg-white shadow-[0_14px_45px_rgba(15,23,42,0.07)]">
+  <div className="border-b border-indigo-50 bg-gradient-to-r from-slate-50 via-white to-sky-50 px-6 py-5">
+    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <div className="mb-2 inline-flex rounded-full border border-indigo-100 bg-white/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600 shadow-sm">
+          Loan Records
         </div>
-      ) : (
+        <h2 className="text-2xl font-bold text-gray-900 md:text-[30px]">
+          Loan History
+        </h2>
+        <p className="mt-1 text-sm text-gray-600 md:text-base">
+          All loan records related to this customer.
+        </p>
+      </div>
+
+      <div className="rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
+        {data.loans.length} Loan{data.loans.length !== 1 ? "s" : ""}
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-gradient-to-b from-white to-slate-50/70 p-6">
+    {data.loans.length === 0 ? (
+      <div className="rounded-[26px] border border-dashed border-gray-200 bg-white px-6 py-14 text-center shadow-sm">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-2xl">
+          📄
+        </div>
+        <h3 className="text-xl font-semibold text-gray-800">No loans found</h3>
+        <p className="mt-2 text-gray-500">
+          This customer does not have any loan records yet.
+        </p>
+      </div>
+    ) : (
+      <div className="overflow-hidden rounded-[26px] border border-gray-100 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
-            <thead>
-              <tr className="border-b border-gray-100 text-sm text-gray-500">
-                <th className="pb-4 font-semibold">Loan ID</th>
-                <th className="pb-4 font-semibold">Loan Type</th>
-                <th className="pb-4 font-semibold">Amount</th>
-                <th className="pb-4 font-semibold">Status</th>
-                <th className="pb-4 font-semibold">Created</th>
+            <thead className="bg-slate-50/80">
+              <tr className="text-sm text-gray-500">
+                <th className="px-6 py-4 font-semibold">Loan ID</th>
+                <th className="px-6 py-4 font-semibold">Loan Type</th>
+                <th className="px-6 py-4 font-semibold">Amount</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold">Created</th>
               </tr>
             </thead>
 
             <tbody>
               {data.loans.map((loan) => (
                 <tr
-                key={loan._id}
-                onClick={() => navigate(`/agent/loans/${loan.loanId}`)}
-                className="cursor-pointer border-b border-gray-50 transition hover:bg-gray-50"
+                  key={loan._id}
+                  onClick={() => navigate(`/agent/loans/${loan.loanId}`)}
+                  className="cursor-pointer border-t border-gray-100 transition hover:bg-indigo-50/40"
                 >
-                  <td className="py-5 font-semibold text-gray-900">
-                    {loan.loanId}
+                  <td className="px-6 py-5">
+                    <div>
+                      <p className="font-semibold text-gray-900">{loan.loanId}</p>
+                      <p className="mt-1 text-xs text-gray-400">
+                        Click to review
+                      </p>
+                    </div>
                   </td>
 
-                  <td className="py-5 text-gray-700">
+                  <td className="px-6 py-5 text-gray-700">
                     {loan.loanDetails?.loanType || "-"}
                   </td>
 
-                  <td className="py-5 text-gray-800">
+                  <td className="px-6 py-5 font-medium text-gray-800">
                     ₹{loan.loanDetails?.amount || 0}
                   </td>
 
-                  <td className="py-5">
+                  <td className="px-6 py-5">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
                         loan.status === "approved"
-                          ? "bg-green-100 text-green-700"
+                          ? "border border-green-200 bg-green-100 text-green-700"
                           : loan.status === "pending"
-                          ? "bg-blue-100 text-blue-700"
+                          ? "border border-blue-200 bg-blue-100 text-blue-700"
                           : loan.status === "draft"
-                          ? "bg-yellow-100 text-yellow-700"
+                          ? "border border-yellow-200 bg-yellow-100 text-yellow-700"
                           : loan.status === "rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-gray-700"
+                          ? "border border-red-200 bg-red-100 text-red-700"
+                          : loan.status === "under_review"
+                          ? "border border-amber-200 bg-amber-100 text-amber-700"
+                          : loan.status === "documents_pending"
+                          ? "border border-orange-200 bg-orange-100 text-orange-700"
+                          : loan.status === "disbursed"
+                          ? "border border-emerald-200 bg-emerald-100 text-emerald-700"
+                          : "border border-gray-200 bg-gray-100 text-gray-700"
                       }`}
                     >
                       {loan.status}
                     </span>
                   </td>
 
-                  <td className="py-5 text-gray-700">
+                  <td className="px-6 py-5 text-gray-700">
                     {new Date(loan.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -382,8 +444,10 @@ const handleCopyPassword = async () => {
             </tbody>
           </table>
         </div>
-      )}
-    </section>
+      </div>
+    )}
+  </div>
+</section>
 
     {showEditModal && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">

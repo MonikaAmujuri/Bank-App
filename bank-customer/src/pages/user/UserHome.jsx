@@ -66,21 +66,21 @@ const UserHome = () => {
     <div className="min-h-screen bg-gray-50 text-gray-800">
       <UserNavbar />
 
-      {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50">
-        <div className="absolute inset-0 opacity-60">
-          <div className="absolute left-0 top-10 h-56 w-56 rounded-full bg-blue-100 blur-3xl" />
+        <div className="absolute inset-0 opacity-70">
+          <div className="absolute left-0 top-12 h-56 w-56 rounded-full bg-blue-100 blur-3xl" />
           <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-cyan-100 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-between gap-12 px-6 py-16 md:flex-row md:py-20 lg:py-24">
+        <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-between gap-10 px-6 py-14 md:flex-row md:py-16 lg:py-20">
           <div className="max-w-2xl">
-            <p className="mb-4 inline-flex rounded-full bg-blue-100 px-4 py-1.5 text-sm font-semibold text-blue-700 shadow-sm">
+            <p className="mb-4 inline-flex rounded-full border border-blue-100 bg-blue-100/80 px-4 py-1.5 text-sm font-semibold text-blue-700 shadow-sm">
               Customer Banking Portal
             </p>
 
             <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-900 md:text-5xl lg:text-6xl">
-              Welcome back to your secure banking space
+              Welcome back to your
+              <span className="block text-blue-800">secure banking space</span>
             </h1>
 
             <p className="mb-8 max-w-xl text-lg leading-8 text-gray-600">
@@ -91,30 +91,30 @@ const UserHome = () => {
             <div className="flex flex-wrap gap-4">
               <Link
                 to="/user/apply-loan"
-                className="rounded-2xl bg-blue-900 px-6 py-3 font-medium text-white shadow-lg shadow-blue-100 transition hover:-translate-y-0.5 hover:bg-blue-800"
+                className="rounded-2xl bg-blue-900 px-6 py-3 font-medium text-white shadow-lg shadow-blue-100 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-blue-800 active:scale-[0.98]"
               >
                 Apply Loan
               </Link>
               <Link
                 to="/user/my-applications"
-                className="rounded-2xl border border-blue-900 bg-white px-6 py-3 font-medium text-blue-900 transition hover:bg-blue-50"
+                className="rounded-2xl border border-blue-900 bg-white px-6 py-3 font-medium text-blue-900 transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-blue-50 active:scale-[0.98]"
               >
                 My Applications
               </Link>
             </div>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-blue-100 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
-                <p className="text-2xl font-bold text-blue-900">Fast</p>
-                <p className="mt-1 text-sm text-gray-500">Application process</p>
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border border-blue-100 bg-white/85 px-4 py-4 shadow-sm backdrop-blur">
+                <p className="text-sm text-gray-500">Applications</p>
+                <p className="mt-1 text-xl font-bold text-gray-900">Easy Track</p>
               </div>
-              <div className="rounded-2xl border border-blue-100 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
-                <p className="text-2xl font-bold text-blue-900">Secure</p>
-                <p className="mt-1 text-sm text-gray-500">Document handling</p>
+              <div className="rounded-2xl border border-blue-100 bg-white/85 px-4 py-4 shadow-sm backdrop-blur">
+                <p className="text-sm text-gray-500">Documents</p>
+                <p className="mt-1 text-xl font-bold text-green-600">Secure Uploads</p>
               </div>
-              <div className="rounded-2xl border border-blue-100 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
-                <p className="text-2xl font-bold text-blue-900">Easy</p>
-                <p className="mt-1 text-sm text-gray-500">Status tracking</p>
+              <div className="rounded-2xl border border-blue-100 bg-white/85 px-4 py-4 shadow-sm backdrop-blur">
+                <p className="text-sm text-gray-500">Support</p>
+                <p className="mt-1 text-xl font-bold text-blue-900">Quick Help</p>
               </div>
             </div>
           </div>
@@ -134,21 +134,21 @@ const UserHome = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="rounded-3xl bg-blue-50 p-5">
+                <div className="rounded-3xl bg-blue-50 p-5 ring-1 ring-blue-100">
                   <p className="text-sm text-gray-500">Loan Applications</p>
                   <p className="mt-1 text-lg font-semibold text-gray-900">
                     Apply and track with ease
                   </p>
                 </div>
 
-                <div className="rounded-3xl bg-gray-50 p-5">
+                <div className="rounded-3xl bg-gray-50 p-5 ring-1 ring-gray-100">
                   <p className="text-sm text-gray-500">Document Management</p>
                   <p className="mt-1 text-lg font-semibold text-gray-900">
                     Upload PAN and Aadhaar securely
                   </p>
                 </div>
 
-                <div className="rounded-3xl bg-cyan-50 p-5">
+                <div className="rounded-3xl bg-cyan-50 p-5 ring-1 ring-cyan-100">
                   <p className="text-sm text-gray-500">Customer Support</p>
                   <p className="mt-1 text-lg font-semibold text-gray-900">
                     Get help whenever you need it
@@ -157,15 +157,15 @@ const UserHome = () => {
               </div>
 
               <div className="mt-6 grid grid-cols-3 gap-4">
-                <div className="rounded-2xl bg-gray-50 p-4 text-center">
+                <div className="rounded-2xl bg-gray-50 p-4 text-center ring-1 ring-gray-100">
                   <p className="text-2xl font-bold text-blue-900">24/7</p>
                   <p className="mt-1 text-xs text-gray-500">Support</p>
                 </div>
-                <div className="rounded-2xl bg-gray-50 p-4 text-center">
+                <div className="rounded-2xl bg-gray-50 p-4 text-center ring-1 ring-gray-100">
                   <p className="text-2xl font-bold text-blue-900">Safe</p>
                   <p className="mt-1 text-xs text-gray-500">Process</p>
                 </div>
-                <div className="rounded-2xl bg-gray-50 p-4 text-center">
+                <div className="rounded-2xl bg-gray-50 p-4 text-center ring-1 ring-gray-100">
                   <p className="text-2xl font-bold text-blue-900">Easy</p>
                   <p className="mt-1 text-xs text-gray-500">Access</p>
                 </div>
@@ -175,8 +175,7 @@ const UserHome = () => {
         </div>
       </section>
 
-      {/* Services */}
-      <section className="py-16 lg:py-20">
+      <section className="py-14 lg:py-16">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-12">
             <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-blue-700">
@@ -195,7 +194,7 @@ const UserHome = () => {
             {services.map((item, index) => (
               <div
                 key={index}
-                className="group rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-gray-100 transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className="group rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-blue-200"
               >
                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-lg font-bold text-blue-800">
                   {index + 1}
@@ -211,9 +210,10 @@ const UserHome = () => {
 
                 <Link
                   to={item.link}
-                  className="inline-block rounded-xl bg-blue-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-800"
+                  className="inline-flex items-center gap-2 rounded-xl bg-blue-900 px-4 py-2 text-sm font-medium text-white transition-all duration-300 hover:bg-blue-800 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  {item.button}
+                  <span>{item.button}</span>
+                  <span>→</span>
                 </Link>
               </div>
             ))}
@@ -221,8 +221,7 @@ const UserHome = () => {
         </div>
       </section>
 
-      {/* Loan Options */}
-      <section className="bg-white py-16 lg:py-20">
+      <section className="bg-white py-14 lg:py-16">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-12 text-center">
             <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-blue-700">
@@ -239,9 +238,10 @@ const UserHome = () => {
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {loanOptions.map((loan, index) => (
-              <div
+              <Link
                 key={index}
-                className="rounded-[28px] border border-gray-200 bg-gray-50 p-6 transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:shadow-md"
+                to={loan.link}
+                className="rounded-[28px] border border-gray-200 bg-gray-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-300 hover:bg-white hover:shadow-lg"
               >
                 <h3 className="mb-3 text-xl font-semibold text-gray-900">
                   {loan.title}
@@ -249,22 +249,19 @@ const UserHome = () => {
                 <p className="mb-5 text-sm leading-7 text-gray-600">
                   {loan.text}
                 </p>
-                <Link
-                  to={loan.link}
-                  className="text-sm font-semibold text-blue-700 hover:underline"
-                >
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-blue-700">
                   Explore Loan
-                </Link>
-              </div>
+                  <span>→</span>
+                </span>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Documents + Applications */}
-      <section className="py-16 lg:py-20">
+      <section className="py-14 lg:py-16">
         <div className="mx-auto grid max-w-7xl gap-6 px-6 lg:grid-cols-2">
-          <div className="rounded-[30px] bg-white p-7 shadow-sm ring-1 ring-gray-100">
+          <div className="rounded-[30px] bg-white p-7 shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
             <h3 className="mb-3 text-2xl font-semibold text-blue-900">
               Manage Your Documents
             </h3>
@@ -274,13 +271,13 @@ const UserHome = () => {
             </p>
             <Link
               to="/user/documents"
-              className="inline-block rounded-xl bg-blue-900 px-5 py-2.5 font-medium text-white transition hover:bg-blue-800"
+              className="inline-block rounded-xl bg-blue-900 px-5 py-2.5 font-medium text-white transition-all duration-300 hover:bg-blue-800 hover:scale-[1.02] active:scale-[0.98]"
             >
               Go to Documents
             </Link>
           </div>
 
-          <div className="rounded-[30px] bg-white p-7 shadow-sm ring-1 ring-gray-100">
+          <div className="rounded-[30px] bg-white p-7 shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
             <h3 className="mb-3 text-2xl font-semibold text-blue-900">
               Check Your Applications
             </h3>
@@ -290,7 +287,7 @@ const UserHome = () => {
             </p>
             <Link
               to="/user/my-applications"
-              className="inline-block rounded-xl bg-blue-900 px-5 py-2.5 font-medium text-white transition hover:bg-blue-800"
+              className="inline-block rounded-xl bg-blue-900 px-5 py-2.5 font-medium text-white transition-all duration-300 hover:bg-blue-800 hover:scale-[1.02] active:scale-[0.98]"
             >
               View My Applications
             </Link>
@@ -298,10 +295,9 @@ const UserHome = () => {
         </div>
       </section>
 
-      {/* Help Section */}
       <section className="pb-16 lg:pb-20">
         <div className="mx-auto max-w-7xl px-6">
-          <div className="rounded-[32px] bg-blue-900 px-8 py-12 text-white shadow-[0_20px_50px_rgba(30,64,175,0.20)] md:px-12">
+          <div className="rounded-[32px] bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 px-8 py-12 text-white shadow-[0_25px_80px_rgba(30,64,175,0.35)] md:px-12">
             <h2 className="mb-4 text-3xl font-bold">
               Need help with your banking services?
             </h2>
@@ -333,7 +329,7 @@ const UserHome = () => {
 
             <Link
               to="/user/my-applications"
-              className="inline-block rounded-2xl bg-white px-6 py-3 font-semibold text-blue-900 transition hover:bg-blue-50"
+              className="inline-block rounded-2xl bg-white px-6 py-3 font-semibold text-blue-900 transition-all duration-300 hover:bg-blue-50 hover:scale-[1.02] active:scale-[0.98]"
             >
               Continue Banking
             </Link>
