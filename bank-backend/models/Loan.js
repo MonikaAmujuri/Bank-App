@@ -79,6 +79,11 @@ const loanSchema = new mongoose.Schema(
       default: {},
     },
 
+    educationDetails: {
+      type: Object,
+      default: {},
+    },
+
     kycDetails: {
       type: Object,
       default: {},

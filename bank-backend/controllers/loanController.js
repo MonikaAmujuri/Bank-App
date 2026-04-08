@@ -104,7 +104,12 @@ export const updateLoan = async (req, res) => {
       });
     }
 
-    const allowedSections = ["loanDetails", "employmentDetails", "kycDetails"];
+    const allowedSections = [
+      "loanDetails",
+      "employmentDetails",
+      "educationDetails",
+      "kycDetails",
+    ];
 
     if (!allowedSections.includes(section)) {
       return res.status(400).json({ message: "Invalid section" });
@@ -132,6 +137,36 @@ export const updateLoan = async (req, res) => {
       if (!companyName || !salary) {
         return res.status(400).json({
           message: "Employment details are required",
+        });
+      }
+    }
+
+    if (section === "educationDetails") {
+      const {
+        institutionName,
+        courseName,
+        courseDuration,
+        instituteLocation,
+        courseFee,
+        studyYear,
+      } = data;
+
+      if (
+        !institutionName ||
+        !courseName ||
+        !courseDuration ||
+        !instituteLocation ||
+        !courseFee ||
+        !studyYear
+      ) {
+        return res.status(400).json({
+          message: "Education details are required",
+        });
+      }
+
+      if (Number(courseFee) <= 0) {
+        return res.status(400).json({
+          message: "Course fee must be greater than 0",
         });
       }
     }
@@ -367,6 +402,12 @@ export const applyLoan = async (req, res) => {
       panNumber,
       aadhaarNumber,
       address,
+      institutionName,
+      courseName,
+      courseDuration,
+      instituteLocation,
+      courseFee,
+      studyYear,
     } = req.body;
 
     const loanId = await generateLoanId();
@@ -396,6 +437,15 @@ export const applyLoan = async (req, res) => {
         netHandSalary: Number(netHandSalary),
       },
 
+      educationDetails: {
+        institutionName,
+        courseName,
+        courseDuration,
+        instituteLocation,
+        courseFee: Number(courseFee),
+        studyYear,
+      },
+
       kycDetails: {
         panNumber,
         aadharNumber: aadhaarNumber,
@@ -403,6 +453,9 @@ export const applyLoan = async (req, res) => {
         panFile: files.panFile?.[0]?.path || "",
         aadhaarFile: files.aadhaarFile?.[0]?.path || "",
         bankStatements: files.bankStatements?.map((file) => file.path) || [],
+        admissionLetter: files.admissionLetter?.[0]?.path || "",
+        feeStructure: files.feeStructure?.[0]?.path || "",
+        marksheets: files.marksheets?.map((file) => file.path) || [],
         itReturns: files.itReturns?.map((file) => file.path) || [],
         payslips: files.payslips?.map((file) => file.path) || [],
       },

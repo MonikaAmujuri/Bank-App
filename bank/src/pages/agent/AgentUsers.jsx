@@ -1,0 +1,834 @@
+import React from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Sector } from "recharts";
+import { Eye, Trash2, RotateCcw } from "lucide-react";
+
+const AgentUsers = () => {
+  const { token } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [searchParams] = useSearchParams();
+  const statusFilter = searchParams.get("status");
+  const [activeCustomerIndex, setActiveCustomerIndex] = useState(0);
+  const navigate = useNavigate();
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [panNumber, setPanNumber] = useState("");
+  const [aadharNumber, setAadharNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [generatedPassword, setGeneratedPassword] = useState("");
+  const [showChart, setShowChart] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    fetchUsers();
+  }, [token, statusFilter]);
+
+  const fetchUsers = async () => {
+    try {
+      const query = new URLSearchParams();
+
+      query.append("all", "true");
+
+      if (statusFilter) {
+        query.append("status", statusFilter);
+      }
+
+      const res = await fetch(
+        `http://localhost:5000/api/agent/users${
+          query.toString() ? `?${query.toString()}` : ""
+        }`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        setUsers(data);
+      } else {
+        setUsers([]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const generatePassword = () => {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let password = "";
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setGeneratedPassword(password);
+  };
+
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch("http://localhost:5000/api/users/create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          panNumber,
+          aadharNumber,
+          address,
+          password: generatedPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message);
+        return;
+      }
+
+      alert("User created successfully");
+
+      setShowForm(false);
+      setName("");
+      setEmail("");
+      setPhone("");
+      setPanNumber("");
+      setAadharNumber("");
+      setAddress("");
+      setGeneratedPassword("");
+
+      fetchUsers();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to remove this user?");
+
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${id}/delete`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to delete user");
+      }
+
+      fetchUsers();
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Something went wrong");
+    }
+  };
+
+  const handleRestore = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${id}/restore`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to restore user");
+      }
+
+      fetchUsers();
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Something went wrong");
+    }
+  };
+
+  const handleStartLoan = async (userId) => {
+    if (!userId) {
+      alert("Cannot start loan: missing user ID");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/loans/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message);
+      }
+
+      navigate(`/agent/loans/${data.loan.loanId}`);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to start loan");
+    }
+  };
+
+  const activeCustomers = users.filter(
+    (user) => !user.isDeleted && user.isActive
+  ).length;
+
+  const inactiveCustomers = users.filter(
+    (user) => user.isDeleted || !user.isActive
+  ).length;
+
+  const customerChartData = [
+    { name: "Active Customers", value: activeCustomers },
+    { name: "Inactive Customers", value: inactiveCustomers },
+  ].filter((item) => item.value > 0);
+
+  const customerChartColors = ["#22C55E", "#EF4444"];
+
+  const totalCustomerChartValue = customerChartData.reduce(
+    (sum, item) => sum + item.value,
+    0
+  );
+
+  const renderPercentLabel = ({ percent }) =>
+    `${(percent * 100).toFixed(0)}%`;
+
+  const pageTitle =
+    statusFilter === "active"
+      ? "Active Customers"
+      : statusFilter === "inactive"
+      ? "Inactive Customers"
+      : "My Customers";
+
+  const renderActiveShape = (props) => {
+    const {
+      cx,
+      cy,
+      innerRadius,
+      outerRadius,
+      startAngle,
+      endAngle,
+      fill,
+      payload,
+      percent,
+      value,
+    } = props;
+
+    return (
+      <g>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 10}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={outerRadius + 13}
+          outerRadius={outerRadius + 19}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          opacity={0.18}
+        />
+        <text
+          x={cx}
+          y={cy - 6}
+          textAnchor="middle"
+          fill="#111827"
+          className="text-sm font-semibold"
+        >
+          {payload.name}
+        </text>
+        <text
+          x={cx}
+          y={cy + 16}
+          textAnchor="middle"
+          fill="#6B7280"
+          className="text-xs"
+        >
+          {value} ({(percent * 100).toFixed(1)}%)
+        </text>
+      </g>
+    );
+  };
+
+  const handleCustomerPieClick = (data) => {
+    if (!data?.name) return;
+
+    if (data.name === "Active Customers") {
+      navigate("/agent/users?status=active");
+    } else if (data.name === "Inactive Customers") {
+      navigate("/agent/users?status=inactive");
+    }
+  };
+
+  return (
+    <div className="space-y-5 sm:space-y-6 lg:space-y-8">
+      <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-5 text-white shadow-lg sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-indigo-100 sm:text-sm sm:tracking-widest">
+              Customer Management
+            </p>
+            <h1 className="text-2xl font-bold leading-tight sm:text-3xl md:text-4xl">
+              {pageTitle}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm text-indigo-100 sm:text-base">
+              Manage your assigned customers, review their status, and start loan
+              applications from one place.
+            </p>
+          </div>
+
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap lg:w-auto">
+            {statusFilter && (
+              <button
+                onClick={() => navigate("/agent/users")}
+                className="w-full rounded-2xl border border-white/40 px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10 sm:w-auto sm:px-6"
+              >
+                Clear Filter
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50 sm:w-auto sm:px-6"
+            >
+              + Add Customer
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-4 flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+              Customer Summary
+            </h2>
+            <p className="mt-1 text-sm text-gray-500 sm:text-base">
+              Overview of assigned customer account status.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowChart(!showChart)}
+            className="w-full rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-50 sm:w-auto"
+          >
+            {showChart ? "Show Cards" : "Show Chart"}
+          </button>
+        </div>
+
+        {!showChart ? (
+          <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 md:gap-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white p-5 shadow-sm sm:p-6">
+              <p className="text-sm font-medium text-gray-500">Total Customers</p>
+              <h3 className="mt-2 text-3xl font-bold text-indigo-600 sm:text-4xl">
+                {users.length}
+              </h3>
+              <p className="mt-2 text-sm text-gray-400">
+                All registered customer accounts
+              </p>
+            </div>
+
+            <div className="rounded-2xl sm:rounded-3xl bg-white p-5 shadow-sm sm:p-6">
+              <p className="text-sm font-medium text-gray-500">Active Customers</p>
+              <h3 className="mt-2 text-3xl font-bold text-green-600 sm:text-4xl">
+                {activeCustomers}
+              </h3>
+              <p className="mt-2 text-sm text-gray-400">
+                Customers with active accounts
+              </p>
+            </div>
+
+            <div className="rounded-2xl sm:rounded-3xl bg-white p-5 shadow-sm sm:p-6">
+              <p className="text-sm font-medium text-gray-500">Inactive Customers</p>
+              <h3 className="mt-2 text-3xl font-bold text-red-500 sm:text-4xl">
+                {inactiveCustomers}
+              </h3>
+              <p className="mt-2 text-sm text-gray-400">
+                Customers with inactive accounts
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl sm:rounded-3xl bg-white p-4 shadow-sm sm:p-6">
+            <div className="mb-5 sm:mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                Customer Status Distribution
+              </h3>
+              <p className="mt-1 text-sm text-gray-500 sm:text-base">
+                Percentage breakdown of active and inactive customers.
+              </p>
+            </div>
+
+            {customerChartData.length > 0 ? (
+              <div className="grid gap-6 lg:gap-8 xl:grid-cols-2 xl:items-center">
+                <div className="h-[260px] w-full sm:h-[320px] md:h-[360px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        activeIndex={activeCustomerIndex}
+                        activeShape={renderActiveShape}
+                        data={customerChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={120}
+                        dataKey="value"
+                        label={renderPercentLabel}
+                        labelLine={false}
+                        onMouseEnter={(_, index) => setActiveCustomerIndex(index)}
+                        onClick={handleCustomerPieClick}
+                      >
+                        {customerChartData.map((entry, index) => (
+                          <Cell
+                            key={`customer-cell-${index}`}
+                            fill={customerChartColors[index % customerChartColors.length]}
+                            style={{ cursor: "pointer" }}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value, name) => [value, name]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="space-y-3 sm:space-y-4">
+                  {customerChartData.map((item, index) => {
+                    const percent = totalCustomerChartValue
+                      ? ((item.value / totalCustomerChartValue) * 100).toFixed(1)
+                      : 0;
+
+                    return (
+                      <div
+                        key={item.name}
+                        onClick={() => handleCustomerPieClick(item)}
+                        className="flex cursor-pointer items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 transition hover:bg-gray-100 sm:px-5 sm:py-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="h-4 w-4 rounded-full"
+                            style={{
+                              backgroundColor:
+                                customerChartColors[index % customerChartColors.length],
+                            }}
+                          />
+                          <span className="text-sm font-medium text-gray-700 sm:text-base">
+                            {item.name}
+                          </span>
+                        </div>
+
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">{item.value}</p>
+                          <p className="text-xs text-gray-500 sm:text-sm">{percent}%</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-12 text-center text-sm text-gray-500 sm:text-base">
+                No customer data available.
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl sm:rounded-3xl bg-white p-4 shadow-sm sm:p-6">
+        <div className="mb-5 sm:mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+            Customer Records
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 sm:text-base">
+            View all assigned customer details and start loan workflows quickly.
+          </p>
+        </div>
+
+        {users.length > 0 ? (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="w-full min-w-[1000px] text-left">
+                <thead>
+                  <tr className="border-b border-gray-100 text-sm text-gray-500">
+                    <th className="pb-4 font-semibold">Customer ID</th>
+                    <th className="pb-4 font-semibold">Name</th>
+                    <th className="pb-4 font-semibold">Email</th>
+                    <th className="pb-4 font-semibold">Created</th>
+                    <th className="pb-4 font-semibold">Status</th>
+                    <th className="pb-4 font-semibold">Action</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {users.map((user) => {
+                    const isUserInactive = user.isDeleted || !user.isActive;
+
+                    return (
+                      <tr
+                        key={user._id}
+                        className="cursor-pointer border-b border-gray-50 transition hover:bg-gray-50"
+                        onClick={() => navigate(`/agent/users/${user._id}`)}
+                      >
+                        <td className="py-5 font-semibold text-gray-900">
+                          {user.userId}
+                        </td>
+
+                        <td className="py-5">
+                          <div>
+                            <p className="font-medium text-gray-900">{user.name}</p>
+                            <p className="mt-1 text-sm text-gray-400">
+                              Customer profile
+                            </p>
+                          </div>
+                        </td>
+
+                        <td className="py-5 text-gray-700">{user.email}</td>
+
+                        <td className="py-5 text-gray-700">
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </td>
+
+                        <td className="py-5">
+                          {isUserInactive ? (
+                            <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-600">
+                              Inactive
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-600">
+                              Active
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/agent/users/${user._id}`);
+                              }}
+                              title="View"
+                              aria-label="View"
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 transition hover:bg-indigo-200"
+                            >
+                              <Eye className="h-4 w-4" strokeWidth={2.2} />
+                            </button>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStartLoan(user.userId);
+                              }}
+                              disabled={isUserInactive}
+                              className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                                isUserInactive
+                                  ? "cursor-not-allowed bg-gray-200 text-gray-500"
+                                  : "bg-blue-600 text-white hover:bg-blue-700"
+                              }`}
+                            >
+                              Start Loan
+                            </button>
+
+                            {user.isDeleted ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRestore(user._id);
+                                }}
+                                title="Restore"
+                                aria-label="Restore"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-green-600 text-white transition hover:bg-green-700"
+                              >
+                                <RotateCcw className="h-4 w-4" strokeWidth={2.2} />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(user._id);
+                                }}
+                                title="Remove"
+                                aria-label="Remove"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-500 text-white transition hover:bg-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" strokeWidth={2.2} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:hidden">
+              {users.map((user) => {
+                const isUserInactive = user.isDeleted || !user.isActive;
+
+                return (
+                  <div
+                    key={user._id}
+                    onClick={() => navigate(`/agent/users/${user._id}`)}
+                    className="cursor-pointer rounded-2xl border border-gray-100 bg-gray-50/70 p-4 shadow-sm transition hover:bg-gray-50"
+                  >
+                    <div className="flex flex-col gap-4">
+                      <div
+                        className="flex items-start justify-between gap-3"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-semibold text-gray-900">
+                              {user.name}
+                            </h3>
+
+                            {isUserInactive ? (
+                              <span className="rounded-full bg-red-100 px-3 py-1 text-[11px] font-semibold text-red-600">
+                                Inactive
+                              </span>
+                            ) : (
+                              <span className="rounded-full bg-green-100 px-3 py-1 text-[11px] font-semibold text-green-600">
+                                Active
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="mt-1 break-all text-sm text-gray-600">
+                            {user.email}
+                          </p>
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/agent/users/${user._id}`)}
+                            title="View"
+                            aria-label="View"
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 transition hover:bg-indigo-200"
+                          >
+                            <Eye className="h-4 w-4" strokeWidth={2.2} />
+                          </button>
+
+                          {user.isDeleted ? (
+                            <button
+                              onClick={() => handleRestore(user._id)}
+                              title="Restore"
+                              aria-label="Restore"
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-green-600 text-white transition hover:bg-green-700"
+                            >
+                              <RotateCcw className="h-4 w-4" strokeWidth={2.2} />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleDelete(user._id)}
+                              title="Remove"
+                              aria-label="Remove"
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-500 text-white transition hover:bg-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" strokeWidth={2.2} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                            Customer ID
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-gray-800">
+                            {user.userId}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                            Created
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-gray-800">
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        className="flex flex-col gap-3 sm:flex-row"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => handleStartLoan(user.userId)}
+                          disabled={isUserInactive}
+                          className={`w-full rounded-xl px-4 py-2.5 text-sm font-medium transition sm:w-auto ${
+                            isUserInactive
+                              ? "cursor-not-allowed bg-gray-200 text-gray-500"
+                              : "bg-blue-600 text-white hover:bg-blue-700"
+                          }`}
+                        >
+                          Start Loan
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-gray-200 px-6 py-14 text-center">
+            <h3 className="text-xl font-semibold text-gray-800">
+              No customers found
+            </h3>
+            <p className="mt-2 text-gray-500">
+              There are no customer records right now.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6">
+          <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-8">
+            <div className="mb-6">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600 sm:text-sm sm:tracking-widest">
+                Add Customer
+              </p>
+              <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
+                Create New Customer
+              </h2>
+              <p className="mt-2 text-sm text-gray-500 sm:text-base">
+                Add a new customer profile and generate initial login credentials.
+              </p>
+            </div>
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 sm:text-base"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 sm:text-base"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 sm:text-base"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+
+                <input
+                  type="text"
+                  placeholder="PAN Number"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 sm:text-base"
+                  value={panNumber}
+                  onChange={(e) => setPanNumber(e.target.value)}
+                />
+
+                <input
+                  type="text"
+                  placeholder="Aadhar Number"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 sm:text-base"
+                  value={aadharNumber}
+                  onChange={(e) => setAadharNumber(e.target.value)}
+                />
+
+                <input
+                  type="text"
+                  placeholder="Address"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 md:col-span-2 sm:text-base"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="rounded-2xl bg-gray-50 p-4">
+                <p className="mb-3 text-sm font-medium text-gray-600">
+                  Login Password
+                </p>
+
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    type="text"
+                    placeholder="Generated Password"
+                    className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm outline-none sm:text-base"
+                    value={generatedPassword}
+                    readOnly
+                  />
+
+                  <button
+                    type="button"
+                    onClick={generatePassword}
+                    className="rounded-xl bg-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-300 sm:text-base"
+                  >
+                    Generate
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="w-full rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 sm:w-auto"
+                >
+                  Create Customer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AgentUsers;

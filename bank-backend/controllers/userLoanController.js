@@ -198,6 +198,12 @@ export const updateMyLoan = async (req, res) => {
       panNumber,
       aadhaarNumber,
       address,
+      institutionName,
+      courseName,
+      courseDuration,
+      instituteLocation,
+      courseFee,
+      studyYear,
     } = req.body || {};
 
     const files = req.files || {};
@@ -214,6 +220,16 @@ export const updateMyLoan = async (req, res) => {
       location,
       salary: Number(salary),
       netHandSalary: Number(netHandSalary),
+    };
+
+    loan.educationDetails = {
+      ...loan.educationDetails,
+      institutionName,
+      courseName,
+      courseDuration,
+      instituteLocation,
+      courseFee: Number(courseFee),
+      studyYear,
     };
 
     const updatedKycDetails = {
@@ -247,6 +263,23 @@ export const updateMyLoan = async (req, res) => {
       );
     }
 
+    if (files.admissionLetter?.[0]) {
+      updatedKycDetails.admissionLetter = files.admissionLetter[0].path;
+      updatedKycDetails.admissionLetterPublicId = files.admissionLetter[0].filename;
+    }
+
+    if (files.feeStructure?.[0]) {
+      updatedKycDetails.feeStructure = files.feeStructure[0].path;
+      updatedKycDetails.feeStructurePublicId = files.feeStructure[0].filename;
+    }
+
+    if (files.marksheets?.length) {
+      updatedKycDetails.marksheets = files.marksheets.map((file) => file.path);
+      updatedKycDetails.marksheetsPublicIds = files.marksheets.map(
+        (file) => file.filename
+      );
+    }
+
     if (files.itReturns?.length) {
       updatedKycDetails.itReturns = files.itReturns.map((file) => file.path);
       updatedKycDetails.itReturnsPublicIds = files.itReturns.map(
@@ -265,6 +298,7 @@ export const updateMyLoan = async (req, res) => {
 
     loan.markModified("loanDetails");
     loan.markModified("employmentDetails");
+    loan.markModified("educationDetails");
     loan.markModified("kycDetails");
 
     await loan.save();
